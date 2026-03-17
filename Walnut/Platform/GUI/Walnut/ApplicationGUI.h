@@ -71,6 +71,10 @@ namespace Walnut {
 
 		bool IsMaximized() const;
 		std::shared_ptr<Image> GetApplicationIcon() const { return m_AppHeaderIcon; }
+		void SetApplicationIcon(std::shared_ptr<Image> newAppHeaderIcon)
+		{
+			m_AppHeaderIcon = std::move(newAppHeaderIcon);
+		}
 
 		float GetTime();
 		GLFWwindow* GetWindowHandle() const { return m_WindowHandle; }

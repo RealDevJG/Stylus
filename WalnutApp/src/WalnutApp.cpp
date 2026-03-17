@@ -1,71 +1,32 @@
-#include "Walnut/Application.h"
-#include "Walnut/EntryPoint.h"
+#include "Layers/ApplicationLayer.h"
 
-#include "Walnut/Image.h"
-#include "Walnut/UI/UI.h"
+#include <memory>
 
-class ExampleLayer : public Walnut::Layer
-{
-public:
-	virtual void OnUIRender() override
-	{
-		ImGui::Begin("Hello");
-		ImGui::Button("Button");
-		ImGui::End();
+#include <Walnut/Application.h>
+#include <Walnut/EntryPoint.h>
 
-		ImGui::ShowDemoWindow();
-
-		UI_DrawAboutModal();
-	}
-
-	void UI_DrawAboutModal()
-	{
-		if (!m_AboutModalOpen)
-			return;
-
-		ImGui::OpenPopup("About");
-		m_AboutModalOpen = ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-		if (m_AboutModalOpen)
-		{
-			auto image = Walnut::Application::Get().GetApplicationIcon();
-			ImGui::Image(image->GetDescriptorSet(), { 48, 48 });
-
-			ImGui::SameLine();
-			Walnut::UI::ShiftCursorX(20.0f);
-
-			ImGui::BeginGroup();
-			ImGui::Text("Walnut application framework");
-			ImGui::Text("by Studio Cherno.");
-			ImGui::EndGroup();
-
-			if (Walnut::UI::ButtonCentered("Close"))
-			{
-				m_AboutModalOpen = false;
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndPopup();
-		}
-	}
-
-	void ShowAboutModal()
-	{
-		m_AboutModalOpen = true;
-	}
-private:
-	bool m_AboutModalOpen = false;
-};
+#include <Walnut/Image.h>
+#include <Walnut/UI/UI.h>
 
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 {
 	Walnut::ApplicationSpecification spec;
-	spec.Name = "Walnut Example";
+
+	spec.Name = "Stylus";
 	spec.CustomTitlebar = true;
+	spec.CenterWindow = true;
+	spec.Width = 1280;
+	spec.Height = 720;
 
 	Walnut::Application* app = new Walnut::Application(spec);
-	std::shared_ptr<ExampleLayer> exampleLayer = std::make_shared<ExampleLayer>();
-	app->PushLayer(exampleLayer);
-	app->SetMenubarCallback([app, exampleLayer]()
+
+	std::shared_ptr<Walnut::Image> appIcon = std::make_shared<Walnut::Image>("assets\\images\\icons\\app-icon.png");
+	app->SetApplicationIcon(appIcon);
+
+	std::shared_ptr<ApplicationLayer> applicationLayer = std::make_shared<ApplicationLayer>();
+	app->PushLayer(applicationLayer);
+
+	app->SetMenubarCallback([app, applicationLayer]()
 	{
 		if (ImGui::BeginMenu("File"))
 		{
@@ -73,6 +34,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 			{
 				app->Close();
 			}
+
 			ImGui::EndMenu();
 		}
 
@@ -80,10 +42,12 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 		{
 			if (ImGui::MenuItem("About"))
 			{
-				exampleLayer->ShowAboutModal();
+				applicationLayer->ShowAboutModal();
 			}
+
 			ImGui::EndMenu();
 		}
 	});
+
 	return app;
 }
