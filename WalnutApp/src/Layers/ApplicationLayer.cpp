@@ -4,13 +4,7 @@
 
 void ApplicationLayer::OnUIRender()
 {
-	ImGui::Begin("Hello");
-	ImGui::Button("Button");
-	ImGui::End();
 
-	ImGui::ShowDemoWindow();
-
-	UI_DrawAboutModal();
 }
 
 void ApplicationLayer::UI_DrawAboutModal()
@@ -20,6 +14,7 @@ void ApplicationLayer::UI_DrawAboutModal()
 
 	ImGui::OpenPopup("About");
 	m_AboutModalOpen = ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
 	if (m_AboutModalOpen)
 	{
 		auto image = Walnut::Application::Get().GetApplicationIcon();

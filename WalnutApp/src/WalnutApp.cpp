@@ -1,4 +1,6 @@
 #include "Layers/ApplicationLayer.h"
+#include "Layers/CanvasLayer.h"
+#include "Layers/UILayer.h"
 
 #include <memory>
 
@@ -25,6 +27,12 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 
 	std::shared_ptr<ApplicationLayer> applicationLayer = std::make_shared<ApplicationLayer>();
 	app->PushLayer(applicationLayer);
+
+	std::shared_ptr<CanvasLayer> canvasLayer = std::make_shared<CanvasLayer>();
+	app->PushLayer(canvasLayer);
+
+	std::shared_ptr<UiLayer> uiLayer = std::make_shared<UiLayer>();
+	app->PushLayer(uiLayer);
 
 	app->SetMenubarCallback([app, applicationLayer]()
 	{
