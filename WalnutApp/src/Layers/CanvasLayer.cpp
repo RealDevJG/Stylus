@@ -1,20 +1,30 @@
 #include "CanvasLayer.h"
 
 #include <glm/glm.hpp>
+#include <iostream>
 
 void CanvasLayer::OnUIRender()
 {
 	ImGui::Begin("Canvas");
-	
+
 	if (m_CanvasData)
 	{
 		ImGui::Image(m_CanvasData->GetDescriptorSet(), { 512, 512 });
 	}
 
+	ImVec2 minImageBounds = ImGui::GetItemRectMin();
+	ImVec2 mousePos = ImGui::GetMousePos();
+
+	float x = mousePos.x - minImageBounds.x;
+	float y = mousePos.y - minImageBounds.y;
+
+	// TODO: dispatch compute shader
+	std::cout << "x: " << x << ", y: " << y << "\n";
+
 	ImGui::End();
 }
 
-void CanvasLayer::OnUpdate(float ts)
+void CanvasLayer::OnAttach()
 {
 	if (!m_CanvasData)
 	{
