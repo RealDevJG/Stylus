@@ -7,31 +7,52 @@ void CanvasLayer::OnUIRender()
 {
 	ImGui::Begin("Canvas");
 
-	if (m_CanvasData)
+	if (m_CanvasImage)
 	{
-		ImGui::Image(m_CanvasData->GetDescriptorSet(), { 512, 512 });
+		ImGui::Image(m_CanvasImage->GetDescriptorSet(), { 512, 512 });
 	}
 
 	ImVec2 minImageBounds = ImGui::GetItemRectMin();
+	ImVec2 maxImageBounds = ImGui::GetItemRectMax();
 	ImVec2 mousePos = ImGui::GetMousePos();
 
 	float x = mousePos.x - minImageBounds.x;
 	float y = mousePos.y - minImageBounds.y;
 
-	// TODO: dispatch compute shader
 	std::cout << "x: " << x << ", y: " << y << "\n";
+
+	// TODO: dispatch compute shader
+	if (ImGui::IsMouseDown(0))
+	{
+		if (x < 0 || x > m_CanvasImage->GetWidth() - 1 || y < 0 || y > m_CanvasImage->GetHeight() - 1)
+		{
+			std::cout << "OUT OF BOUNDS CLICK\n";
+		}
+		else
+		{
+			std::cout << "IN BOUNDS CLICK\n";
+
+			uint32_t index = x + y * 512;
+			m_CanvasData[index] = 255 << 24 | 0 << 16 | 0 << 8 | 255;
+
+			m_CanvasImage->SetData(m_CanvasData.get());
+		}
+	}
 
 	ImGui::End();
 }
 
 void CanvasLayer::OnAttach()
 {
-	if (!m_CanvasData)
+	if (!m_CanvasImage)
 	{
-		m_CanvasData = std::make_shared<Walnut::Image>(512, 512, Walnut::ImageFormat::RGBA);
+		m_CanvasImage = std::make_shared<Walnut::Image>(512, 512, Walnut::ImageFormat::RGBA);
 	}
 
-	uint32_t* data = new uint32_t[512 * 512];
+	if (!m_CanvasData)
+	{
+		m_CanvasData = std::make_unique<uint32_t[]>(uint32_t(512 * 512));
+	}
 
 	for (uint32_t y = 0; y < 512; ++y)
 	{
@@ -44,10 +65,10 @@ void CanvasLayer::OnAttach()
 			uint8_t b = 0;
 			uint8_t a = 255;
 
-			data[index] = a << 24 | b << 16 | g << 8 | r;
+			auto data = m_CanvasData.get();
+			m_CanvasData.get()[index] = a << 24 | b << 16 | g << 8 | r;
 		}
 	}
 
-	m_CanvasData->SetData(data);
-	delete[] data;
+	m_CanvasImage->SetData(m_CanvasData.get());
 }
