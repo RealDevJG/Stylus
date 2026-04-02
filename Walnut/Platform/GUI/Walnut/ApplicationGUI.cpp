@@ -428,6 +428,18 @@ namespace Walnut {
 		return *s_Instance;
 	}
 
+	// NOTE: added by stylus
+	uint32_t Application::GetQueueFamilyIndex()
+	{
+		return g_QueueFamily;
+	}
+
+	// NOTE: added by stylus
+	VkQueue Application::GetQueue()
+	{
+		return g_Queue;
+	}
+
 	void Application::Init()
 	{
 		// Intialize logging
