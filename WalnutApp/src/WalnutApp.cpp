@@ -28,7 +28,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	std::shared_ptr<ApplicationLayer> applicationLayer = std::make_shared<ApplicationLayer>();
 	app->PushLayer(applicationLayer);
 
-	std::shared_ptr<CanvasLayer> canvasLayer = std::make_shared<CanvasLayer>(1024, 512);
+	std::shared_ptr<CanvasLayer> canvasLayer = std::make_shared<CanvasLayer>();
 	app->PushLayer(canvasLayer);
 
 	std::shared_ptr<UiLayer> uiLayer = std::make_shared<UiLayer>();
