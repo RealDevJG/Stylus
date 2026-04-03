@@ -5,16 +5,18 @@
 
 namespace Stylus {
 
-	ComputePipeline::ComputePipeline(std::shared_ptr<Walnut::Image> canvasImage)
+	ComputePipeline::ComputePipeline(std::shared_ptr<Walnut::Image> canvasImage, const std::filesystem::path& shaderPath, uint32_t pushSize)
 		: m_Device(Walnut::Application::GetDevice()),
   		  m_PhysicalDevice(Walnut::Application::GetPhysicalDevice()),
   		  m_QueueFamilyIndex(Walnut::Application::GetQueueFamilyIndex()),
-  		  m_CanvasImage(canvasImage)
+  		  m_CanvasImage(canvasImage),
+		  m_PushSize(pushSize)
 	{
 		CreateLayouts();
-		CreateComputePipeline("assets/shaders/test.spv");
+		CreateComputePipeline(shaderPath);
 		CreatePools();
 		CreateCommandBuffer();
+
 		AllocateDescriptorSet();
 	}
 
@@ -32,7 +34,7 @@ namespace Stylus {
 		vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
 	}
 
-	void ComputePipeline::DispatchShader(uint32_t width, uint32_t height)
+	void ComputePipeline::DispatchShader(uint32_t width, uint32_t height, const void* pushData)
 	{
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -59,6 +61,15 @@ namespace Stylus {
 
 		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_ComputePipeline);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_PipelineLayout, 0, 1, &m_DescriptorSet, 0, nullptr);
+
+		vkCmdPushConstants(
+			m_CommandBuffer,
+			m_PipelineLayout,
+			VK_SHADER_STAGE_COMPUTE_BIT,
+			0,
+			m_PushSize,
+			pushData
+		);
 
 		uint32_t groupCountX = static_cast<uint32_t>(ceil(width / 16.0f));
 		uint32_t groupCountY = static_cast<uint32_t>(ceil(height / 16.0f));
@@ -151,14 +162,19 @@ namespace Stylus {
 		VkResult result = vkCreateDescriptorSetLayout(m_Device, &layoutInfo, nullptr, &m_DescriptorSetLayout);
 		check_vk_result(result);
 
+		// Push Constants
+		VkPushConstantRange pushConstantRange{};
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = m_PushSize;
+
+		// Pipeline layout
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 1;
 		pipelineLayoutInfo.pSetLayouts = &m_DescriptorSetLayout;
-
-		// TODO: push constants
-		pipelineLayoutInfo.pushConstantRangeCount = 0;
-		pipelineLayoutInfo.pPushConstantRanges = nullptr;
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
 		result = vkCreatePipelineLayout(m_Device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
 		check_vk_result(result);
