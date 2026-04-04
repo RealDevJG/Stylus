@@ -22,7 +22,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 
 	Walnut::Application* app = new Walnut::Application(spec);
 
-	std::shared_ptr<Walnut::Image> appIcon = std::make_shared<Walnut::Image>("assets\\images\\icons\\app-icon.png");
+	std::shared_ptr<Walnut::Image> appIcon = std::make_shared<Walnut::Image>("assets/images/icons/app-icon.png");
 	app->SetApplicationIcon(appIcon);
 
 	std::shared_ptr<ApplicationLayer> applicationLayer = std::make_shared<ApplicationLayer>();

@@ -10,11 +10,21 @@
 namespace Stylus {
 
 	// NOTE: TEMPORARILY HERE
+	enum BrushShapeEnum
+	{
+		Circle = 0,
+		Square,
+		Triangle
+	};
+
+	// NOTE: TEMPORARILY HERE
 	struct alignas(16) BrushPushData
 	{
 		glm::vec4 Colour;
 		glm::vec2 MousePos;
-		float DrawRadius;
+		int Shape;
+		float Radius;
+		bool Antialiased;
 	};
 
 	// NOTE: TEMPORARILY HERE

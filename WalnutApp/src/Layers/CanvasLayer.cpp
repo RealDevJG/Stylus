@@ -64,7 +64,9 @@ void CanvasLayer::OnUIRender()
 
 	Stylus::BrushPushData pushData{};
 	pushData.MousePos = glm::vec2(x, y);
-	pushData.DrawRadius = 5;
+	pushData.Radius = 50;
+	pushData.Shape = Stylus::BrushShapeEnum::Circle;
+	pushData.Antialiased = true;
 
 	if (ImGui::IsMouseDown(0))
 	{
