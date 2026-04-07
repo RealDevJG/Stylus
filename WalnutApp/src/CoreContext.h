@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Tools/ToolManager.h"
-#include "ToolOptions/ToolOptionsRegistry.h"
+#include "Tools/Options/ToolOptionsRegistry.h"
 #include "Vulkan/ShaderRegistry.h"
 
 #include <memory>

@@ -1,6 +1,6 @@
 #include "ToolManager.h"
 
-#include "../ToolOptions/ToolOptionsRegistry.h"
+#include "../Tools/Options/ToolOptionsRegistry.h"
 #include "../Vulkan/ComputePipeline.h"
 
 namespace Stylus {
@@ -10,10 +10,21 @@ namespace Stylus {
           m_OptionsRegistry(optionsRegistry)
     {}
 
-    void ToolManager::Use(glm::vec2 mousePos)
+    void ToolManager::Use(glm::vec2 mousePos, ImGuiMouseButton mouseButton)
     {
         ToolOptionsRegistry::ToolHooks hooks = m_OptionsRegistry->GetHooks(m_CurrentTool);
-        hooks.Dispatch(m_ShaderRegistry->Get(m_CurrentTool).get(), mousePos);
+
+        // TODO: change shader variables to be different left vs right click
+        if (mouseButton == ImGuiMouseButton_Left)
+        {
+            auto shader = m_ShaderRegistry->Get(m_CurrentTool).get();
+            hooks.LeftClickDispatch(shader, mousePos);
+        }
+        else if (mouseButton == ImGuiMouseButton_Right)
+        {
+            auto shader = m_ShaderRegistry->Get(m_CurrentTool).get();
+            hooks.RightClickDispatch(m_ShaderRegistry->Get(m_CurrentTool).get(), mousePos);
+        }
     }
 
     void ToolManager::SetTool(ToolEnum tool)

@@ -10,7 +10,7 @@ namespace Stylus {
 		glm::vec2 MousePos;
 		int Shape;
 		float Radius;
-		bool Antialiased;
+		uint32_t Antialiased;
 	};
 
 }

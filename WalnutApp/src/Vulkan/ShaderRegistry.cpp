@@ -1,7 +1,7 @@
 #include "ShaderRegistry.h"
 
-#include "../ToolOptions/Brush/BrushPushData.h"
-#include "../ToolOptions/Fill/FillCanvasData.h"
+#include "../Tools/Options/Brush/BrushPushData.h"
+#include "../Tools/Options/Fill/FillCanvasData.h"
 #include "../Tools/EffectEnum.h"
 #include "../Tools/ToolEnum.h"
 

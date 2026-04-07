@@ -4,13 +4,11 @@
 
 void ApplicationLayer::OnAttach()
 {
-	m_Context->ToolManager->SetTool(ToolEnum::Brush);
+	m_Context->ToolManager->SetTool(Stylus::ToolEnum::Brush);
 }
 
-void ApplicationLayer::OnUIRender()
-{
-
-}
+// Potential debug stuff
+void ApplicationLayer::OnUIRender() {}
 
 void ApplicationLayer::UI_DrawAboutModal()
 {

@@ -1,17 +1,11 @@
 #include "UILayer.h"
 
-#include "../ToolOptions/Brush/BrushShape.h"
+#include "../Tools/Options/Brush/BrushShape.h"
 
 #include <imgui.h>
 
-static char g_BrushWidthString[100] = "13";
-
-static Stylus::BrushShapeEnum g_CurrentShape = Stylus::BrushShapeList[1].first;
-static std::string g_ShapeLabel(Stylus::BrushShapeList[1].second);
-
 UiLayer::UiLayer(std::shared_ptr<Stylus::CoreContext> context)
-	: m_Context(context)
-{}
+	: m_Context(context) {}
 
 void UiLayer::OnUIRender()
 {
@@ -20,29 +14,11 @@ void UiLayer::OnUIRender()
 	ImGui::End();
 
 	ImGui::Begin("Tool Options");
-	//ImGui::Text("Tool options area");
 
-	ImGui::InputText("Brush Width", g_BrushWidthString, IM_ARRAYSIZE(g_BrushWidthString));
-	
-	if (ImGui::BeginCombo("Brush Shape", g_ShapeLabel.c_str()))
-	{
-		for (const auto& [shapeEnum, shapeString] : Stylus::BrushShapeList)
-		{
-			bool isSelected = g_CurrentShape == shapeEnum;
+	Stylus::ToolEnum currentTool = m_Context->ToolManager->GetTool();
+	auto hooks = m_Context->OptionsRegistry->GetHooks(currentTool);
 
-			if (ImGui::Selectable(shapeString, isSelected))
-			{
-				g_CurrentShape = shapeEnum;
-				g_ShapeLabel = shapeString;
-			}
-
-			if (isSelected)
-			{
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
+	hooks.DrawUI();
 
 	ImGui::End();
 }

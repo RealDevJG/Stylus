@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Brush/BrushShape.h"
-#include "../Tools/ToolEnum.h"
-#include "../Vulkan/ComputePipeline.h"
+#include "../ToolEnum.h"
+#include "../../Vulkan/ComputePipeline.h"
 
 #include <glm/glm.hpp>
 
@@ -15,13 +15,13 @@ namespace Stylus {
 	class ToolOptionsRegistry
 	{
 	public:
-		// WARN: this was making visual studio 26 intellisense freak out
-		//using DispatchDefinition = void(ComputePipeline* shader, glm::vec2 mousePos);
+		using DispatchDefinition = void(ComputePipeline* shader, glm::vec2 mousePos);
 
 		struct ToolHooks
 		{
 			std::function<void()> DrawUI;
-			std::function<void(ComputePipeline* shader, glm::vec2 mousePos)> Dispatch;
+			std::function<DispatchDefinition> LeftClickDispatch;
+			std::function<DispatchDefinition> RightClickDispatch;
 		};
 
 		ToolOptionsRegistry();
@@ -33,10 +33,10 @@ namespace Stylus {
 		void SetBrushWidth(float width) { m_BrushWidth = width; }
 		void SetAntiAliased(bool enabled) { m_Antialiased = enabled; }
 	private:
-		glm::vec4 m_PrimaryColour = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		glm::vec4 m_SecondaryColour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		glm::vec4 m_PrimaryColour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+		glm::vec4 m_SecondaryColour = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
 
-		float m_BrushWidth = 50.0f;
+		float m_BrushWidth = 3.0f;
 		BrushShapeEnum m_BrushShape = BrushShapeEnum::Circle;
 
 		bool m_Antialiased = true;
