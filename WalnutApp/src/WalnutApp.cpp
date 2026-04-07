@@ -1,14 +1,14 @@
 #include "Layers/ApplicationLayer.h"
 #include "Layers/CanvasLayer.h"
 #include "Layers/UILayer.h"
-
-#include <memory>
+#include "CoreContext.h"
 
 #include <Walnut/Application.h>
 #include <Walnut/EntryPoint.h>
-
 #include <Walnut/Image.h>
 #include <Walnut/UI/UI.h>
+
+#include <memory>
 
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 {
@@ -25,13 +25,17 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	std::shared_ptr<Walnut::Image> appIcon = std::make_shared<Walnut::Image>("assets/images/icons/app-icon.png");
 	app->SetApplicationIcon(appIcon);
 
-	std::shared_ptr<ApplicationLayer> applicationLayer = std::make_shared<ApplicationLayer>();
+	std::shared_ptr<Stylus::CoreContext> context = std::make_shared<Stylus::CoreContext>();
+	context->OptionsRegistry = std::make_shared<Stylus::ToolOptionsRegistry>();
+	context->ShaderRegistry = std::make_shared<Stylus::ShaderRegistry>();
+	context->ToolManager = std::make_shared<Stylus::ToolManager>(context->ShaderRegistry, context->OptionsRegistry);
+
+	std::shared_ptr<ApplicationLayer> applicationLayer = std::make_shared<ApplicationLayer>(context);
+	std::shared_ptr<CanvasLayer> canvasLayer = std::make_shared<CanvasLayer>(context);
+	std::shared_ptr<UiLayer> uiLayer = std::make_shared<UiLayer>(context);
+
 	app->PushLayer(applicationLayer);
-
-	std::shared_ptr<CanvasLayer> canvasLayer = std::make_shared<CanvasLayer>();
 	app->PushLayer(canvasLayer);
-
-	std::shared_ptr<UiLayer> uiLayer = std::make_shared<UiLayer>();
 	app->PushLayer(uiLayer);
 
 	app->SetMenubarCallback([app, applicationLayer]()

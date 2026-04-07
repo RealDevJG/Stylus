@@ -2,6 +2,11 @@
 
 #include <Walnut/UI/UI.h>
 
+void ApplicationLayer::OnAttach()
+{
+	m_Context->ToolManager->SetTool(ToolEnum::Brush);
+}
+
 void ApplicationLayer::OnUIRender()
 {
 

@@ -9,37 +9,13 @@
 
 namespace Stylus {
 
-	// NOTE: TEMPORARILY HERE
-	enum BrushShapeEnum
-	{
-		Circle = 0,
-		Square,
-		Triangle
-	};
-
-	// NOTE: TEMPORARILY HERE
-	struct alignas(16) BrushPushData
-	{
-		glm::vec4 Colour;
-		glm::vec2 MousePos;
-		int Shape;
-		float Radius;
-		bool Antialiased;
-	};
-
-	// NOTE: TEMPORARILY HERE
-	struct alignas(16) ColourFillPushData
-	{
-		glm::vec4 Colour;
-	};
-
 	class ComputePipeline
 	{
 	public:
 		ComputePipeline(std::shared_ptr<Walnut::Image> canvasImage, const std::filesystem::path& shaderPath, uint32_t pushSize);
 		~ComputePipeline();
 
-		void DispatchShader(uint32_t width, uint32_t height, const void* pushData);
+		void DispatchShader(const void* pushData);
 	private:
 		void CreateComputePipeline(const std::filesystem::path& shaderPath);
 		VkShaderModule CreateShaderModule(const std::filesystem::path& shaderPath);

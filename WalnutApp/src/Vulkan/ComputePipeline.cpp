@@ -34,7 +34,7 @@ namespace Stylus {
 		vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
 	}
 
-	void ComputePipeline::DispatchShader(uint32_t width, uint32_t height, const void* pushData)
+	void ComputePipeline::DispatchShader(const void* pushData)
 	{
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -71,8 +71,8 @@ namespace Stylus {
 			pushData
 		);
 
-		uint32_t groupCountX = static_cast<uint32_t>(ceil(width / 16.0f));
-		uint32_t groupCountY = static_cast<uint32_t>(ceil(height / 16.0f));
+		uint32_t groupCountX = static_cast<uint32_t>(ceil(m_CanvasImage->GetWidth() / 16.0f));
+		uint32_t groupCountY = static_cast<uint32_t>(ceil(m_CanvasImage->GetHeight() / 16.0f));
 		vkCmdDispatch(m_CommandBuffer, groupCountX, groupCountY, 1);
 
 		// Transition Image from to ReadOnly for ImGui

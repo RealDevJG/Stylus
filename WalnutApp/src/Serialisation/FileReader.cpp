@@ -6,6 +6,7 @@
 namespace Stylus {
 
 	FileReader::FileReader(std::filesystem::path path)
+		: m_Path(path)
 	{
 		m_File = std::ifstream(path, std::ios::binary | std::ios::ate);
 	}
@@ -19,7 +20,7 @@ namespace Stylus {
 	{
 		if (!m_File.good())
 		{
-			std::cerr << "File not good\n";
+			std::cout << "File " << m_Path << " is no good, wrong path maybe?\n";
 			return std::vector<uint32_t>();
 		}
 
