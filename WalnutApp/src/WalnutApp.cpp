@@ -13,7 +13,6 @@
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 {
 	Walnut::ApplicationSpecification spec;
-
 	spec.Name = "Stylus";
 	spec.CustomTitlebar = true;
 	spec.CenterWindow = true;
@@ -21,24 +20,22 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.Height = 720;
 
 	Walnut::Application* app = new Walnut::Application(spec);
+	app->SetApplicationIcon(std::make_shared<Walnut::Image>("assets/images/icons/app-icon.png"));
 
-	std::shared_ptr<Walnut::Image> appIcon = std::make_shared<Walnut::Image>("assets/images/icons/app-icon.png");
-	app->SetApplicationIcon(appIcon);
-
-	std::shared_ptr<Stylus::CoreContext> context = std::make_shared<Stylus::CoreContext>();
+	auto context = std::make_shared<Stylus::CoreContext>();
 	context->OptionsRegistry = std::make_shared<Stylus::ToolOptionsRegistry>();
 	context->ShaderRegistry = std::make_shared<Stylus::ShaderRegistry>();
 	context->ToolManager = std::make_shared<Stylus::ToolManager>(context->ShaderRegistry, context->OptionsRegistry);
 
-	std::shared_ptr<ApplicationLayer> applicationLayer = std::make_shared<ApplicationLayer>(context);
-	std::shared_ptr<CanvasLayer> canvasLayer = std::make_shared<CanvasLayer>(context);
-	std::shared_ptr<UiLayer> uiLayer = std::make_shared<UiLayer>(context);
+	auto applicationLayer = std::make_shared<ApplicationLayer>(context);
+	auto canvasLayer = std::make_shared<CanvasLayer>(context);
+	auto uiLayer = std::make_shared<UiLayer>(context);
 
 	app->PushLayer(applicationLayer);
 	app->PushLayer(canvasLayer);
 	app->PushLayer(uiLayer);
 
-	app->SetMenubarCallback([app, applicationLayer]()
+	app->SetMenubarCallback([app, applicationLayer, context]()
 	{
 		if (ImGui::BeginMenu("File"))
 		{

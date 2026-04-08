@@ -18,6 +18,12 @@ namespace Stylus {
 
 		[[nodiscard]] std::shared_ptr<ComputePipeline> Get(ToolEnum tool);
 		[[nodiscard]] std::shared_ptr<ComputePipeline> Get(EffectEnum effect);
+
+		void Cleanup()
+		{
+			m_ToolShaders.clear();
+			m_EffectShaders.clear();
+		}
 	private:
 		std::unordered_map<ToolEnum, std::shared_ptr<ComputePipeline>> m_ToolShaders{};
 		std::unordered_map<EffectEnum, std::shared_ptr<ComputePipeline>> m_EffectShaders{};

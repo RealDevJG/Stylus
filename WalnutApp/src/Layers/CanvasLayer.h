@@ -18,12 +18,14 @@ public:
 	virtual void OnUIRender() override;
 	virtual void OnUpdate(float ts) override;
 private:
-	bool IsInBounds(float x, float y);
-private:
 	std::shared_ptr<Walnut::Image> m_CanvasImage{};
 	std::shared_ptr<Stylus::CoreContext> m_Context{};
 
 	glm::vec2 m_MousePos{};
 	uint32_t m_CanvasWidth = 854;
 	uint32_t m_CanvasHeight = 480;
+
+	bool m_IsCanvasHovered = false;
+	bool m_LeftMouseDown = false;
+	bool m_RightMouseDown = false;
 };

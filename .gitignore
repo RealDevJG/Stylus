@@ -13,3 +13,4 @@ WalnutApp/imgui.ini
 
 # Exclude
 !vendor/bin
+CppCheck/

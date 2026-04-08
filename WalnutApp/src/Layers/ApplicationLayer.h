@@ -12,6 +12,7 @@ public:
 		: m_Context(context) {}
 
 	virtual void OnAttach() override;
+	virtual void OnDetach() override;
 	virtual void OnUIRender() override;
 
 	void UI_DrawAboutModal();

@@ -45,6 +45,7 @@ void CanvasLayer::OnUIRender()
 	}
 
 	ImGui::Image(m_CanvasImage->GetDescriptorSet(), { static_cast<float>(m_CanvasWidth), static_cast<float>(m_CanvasHeight) });
+	m_IsCanvasHovered = ImGui::IsItemHovered();
 
 	ImVec2 minImageBounds = ImGui::GetItemRectMin();
 	ImVec2 maxImageBounds = ImGui::GetItemRectMax();
@@ -58,20 +59,33 @@ void CanvasLayer::OnUIRender()
 	ImGui::End();
 }
 
-// TODO: stop clicks from registering on canvas if handled other widgets
 void CanvasLayer::OnUpdate(float ts)
 {
-	if (ImGui::IsMouseDown(0))
+	if (ImGui::IsMouseClicked(0) && m_IsCanvasHovered)
+	{
+		m_LeftMouseDown = true;
+	}
+	else if (ImGui::IsMouseClicked(1) && m_IsCanvasHovered)
+	{
+		m_RightMouseDown = true;
+	}
+
+	if (ImGui::IsMouseReleased(0))
+	{
+		m_LeftMouseDown = false;
+	}
+
+	if (ImGui::IsMouseReleased(1))
+	{
+		m_RightMouseDown = false;
+	}
+
+	if (m_LeftMouseDown)
 	{
 		m_Context->ToolManager->Use(m_MousePos, ImGuiMouseButton_Left);
 	}
-	else if (ImGui::IsMouseDown(1))
+	else if (m_RightMouseDown)
 	{
 		m_Context->ToolManager->Use(m_MousePos, ImGuiMouseButton_Right);
 	}
-}
-
-bool CanvasLayer::IsInBounds(float x, float y)
-{
-	return x >= 0 && x < m_CanvasImage->GetWidth() && y >= 0 && y < m_CanvasImage->GetHeight();
 }
