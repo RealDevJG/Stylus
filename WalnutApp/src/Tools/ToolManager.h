@@ -17,7 +17,7 @@ namespace Stylus {
 	public:
 		ToolManager(std::shared_ptr<ShaderRegistry> shaderRegistry, std::shared_ptr<ToolOptionsRegistry> optionsRegistry);
 
-		void Use(glm::vec2 mousePos, ImGuiMouseButton mouseButton);
+		void Use(glm::vec2 mousePos, glm::vec2 prevMousePos, ImGuiMouseButton mouseButton);
 		void SetTool(ToolEnum tool);
 		ToolEnum GetTool() const { return m_CurrentTool; }
 	private:

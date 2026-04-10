@@ -35,7 +35,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	app->PushLayer(canvasLayer);
 	app->PushLayer(uiLayer);
 
-	app->SetMenubarCallback([app, applicationLayer, context]()
+	app->SetMenubarCallback([app, applicationLayer]()
 	{
 		if (ImGui::BeginMenu("File"))
 		{

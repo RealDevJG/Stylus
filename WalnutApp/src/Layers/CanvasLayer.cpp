@@ -82,10 +82,12 @@ void CanvasLayer::OnUpdate(float ts)
 
 	if (m_LeftMouseDown)
 	{
-		m_Context->ToolManager->Use(m_MousePos, ImGuiMouseButton_Left);
+		m_Context->ToolManager->Use(m_MousePos, m_PrevMousePos, ImGuiMouseButton_Left);
 	}
 	else if (m_RightMouseDown)
 	{
-		m_Context->ToolManager->Use(m_MousePos, ImGuiMouseButton_Right);
+		m_Context->ToolManager->Use(m_MousePos, m_PrevMousePos, ImGuiMouseButton_Right);
 	}
+
+	m_PrevMousePos = m_MousePos;
 }

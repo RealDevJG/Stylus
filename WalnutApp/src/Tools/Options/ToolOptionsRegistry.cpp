@@ -20,10 +20,11 @@ namespace Stylus {
                     [&]() { ImGui::Checkbox("Antialiasing", &m_Antialiased); }
                 );
             },
-            .LeftClickDispatch = [this](ComputePipeline* shader, glm::vec2 mousePos) {
+            .LeftClickDispatch = [this](ComputePipeline* shader, glm::vec2 mousePos, glm::vec2 prevMousePos) {
                 BrushPushData pushData{
                     .Colour = m_PrimaryColour,
                     .MousePos = mousePos,
+                    .PrevMousePos = prevMousePos,
                     .Shape = static_cast<int>(m_BrushShape),
                     .Radius = m_BrushWidth,
                     .Antialiased = m_Antialiased ? 1u : 0u
@@ -31,10 +32,11 @@ namespace Stylus {
 
                 shader->DispatchShader(&pushData);
             },
-            .RightClickDispatch = [this](ComputePipeline* shader, glm::vec2 mousePos) {
+            .RightClickDispatch = [this](ComputePipeline* shader, glm::vec2 mousePos, glm::vec2 prevMousePos) {
                 BrushPushData pushData{
                     .Colour = m_SecondaryColour,
                     .MousePos = mousePos,
+                    .PrevMousePos = prevMousePos,
                     .Shape = static_cast<int>(m_BrushShape),
                     .Radius = m_BrushWidth,
                     .Antialiased = m_Antialiased ? 1u : 0u

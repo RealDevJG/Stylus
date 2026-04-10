@@ -8,6 +8,7 @@ namespace Stylus {
 	{
 		glm::vec4 Colour;
 		glm::vec2 MousePos;
+		glm::vec2 PrevMousePos;
 		int Shape;
 		float Radius;
 		uint32_t Antialiased;

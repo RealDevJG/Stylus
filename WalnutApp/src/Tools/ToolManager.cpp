@@ -10,7 +10,7 @@ namespace Stylus {
           m_OptionsRegistry(optionsRegistry)
     {}
 
-    void ToolManager::Use(glm::vec2 mousePos, ImGuiMouseButton mouseButton)
+    void ToolManager::Use(glm::vec2 mousePos, glm::vec2 prevMousePos, ImGuiMouseButton mouseButton)
     {
         ToolOptionsRegistry::ToolHooks hooks = m_OptionsRegistry->GetHooks(m_CurrentTool);
 
@@ -18,12 +18,12 @@ namespace Stylus {
         if (mouseButton == ImGuiMouseButton_Left)
         {
             auto shader = m_ShaderRegistry->Get(m_CurrentTool).get();
-            hooks.LeftClickDispatch(shader, mousePos);
+            hooks.LeftClickDispatch(shader, mousePos, prevMousePos);
         }
         else if (mouseButton == ImGuiMouseButton_Right)
         {
             auto shader = m_ShaderRegistry->Get(m_CurrentTool).get();
-            hooks.RightClickDispatch(m_ShaderRegistry->Get(m_CurrentTool).get(), mousePos);
+            hooks.RightClickDispatch(shader, mousePos, prevMousePos);
         }
     }
 

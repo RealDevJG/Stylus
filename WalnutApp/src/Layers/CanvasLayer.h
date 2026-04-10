@@ -22,6 +22,7 @@ private:
 	std::shared_ptr<Stylus::CoreContext> m_Context{};
 
 	glm::vec2 m_MousePos{};
+	glm::vec2 m_PrevMousePos{};
 	uint32_t m_CanvasWidth = 854;
 	uint32_t m_CanvasHeight = 480;
 

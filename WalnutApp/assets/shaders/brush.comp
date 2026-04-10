@@ -6,6 +6,7 @@ layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 layout(push_constant) uniform PushData {
 	vec4 Colour;
 	vec2 MousePos;
+	vec2 PrevMousePos;
     int Shape;
 	float Radius;
     bool Antialiased;
@@ -39,33 +40,43 @@ float sdTriangle(vec2 pos, float radius)
 
 void main()
 {
-    ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
+    vec2 pixelPos = vec2(pixelCoord);
 
-    vec2 pos = pixelCoords - PushConstants.MousePos;
-    float dist = 1e10;
+    vec2 strokeDelta = PushConstants.MousePos - PushConstants.PrevMousePos;
+    float strokeLength = length(strokeDelta);
 
-    if (PushConstants.Shape == 0) dist = sdCircle(pos, PushConstants.Radius);
-    else if (PushConstants.Shape == 1) dist = sdSquare(pos, PushConstants.Radius);
-    else if (PushConstants.Shape == 2) dist = sdTriangle(pos, PushConstants.Radius);
+    float spacing = max(PushConstants.Radius * 0.5, 1.0);
+    int stepCount = max(1, int(ceil(strokeLength / spacing)));
 
-    if (PushConstants.Antialiased)
+    vec4 resultColour = imageLoad(canvasImage, pixelCoord);
+    float aaWidth = 2.0;
+
+    for (int i = 0; i <= stepCount; i++)
     {
-        float aa = 2.0;
-        float alpha = 1.0 - smoothstep(-aa, aa, dist);
+        float t = float(i) / float(stepCount);
+        vec2 samplePos = mix(PushConstants.PrevMousePos, PushConstants.MousePos, t);
 
-        if (alpha > 0.0)
+        vec2 localPos = pixelPos - samplePos;
+
+        float signedDistance;
+        if (PushConstants.Shape == 0) signedDistance = sdCircle(localPos, PushConstants.Radius);
+        else if (PushConstants.Shape == 1) signedDistance = sdSquare(localPos, PushConstants.Radius);
+        else if (PushConstants.Shape == 3) signedDistance = sdTriangle(localPos, PushConstants.Radius);
+
+        if (PushConstants.Antialiased)
         {
-            vec4 oldColour = imageLoad(canvasImage, pixelCoords);
-            vec4 colour = mix(oldColour, PushConstants.Colour, alpha);
-
-            imageStore(canvasImage, pixelCoords, colour);
+            float alpha = 1.0 - smoothstep(-aaWidth, aaWidth, signedDistance);
+            resultColour = mix(resultColour, PushConstants.Colour, alpha);
+        }
+        else
+        {
+            if (signedDistance <= 0.0)
+            {
+                resultColour = PushConstants.Colour;
+            }
         }
     }
-    else
-    {
-        if (dist <= 0.0)
-        {
-            imageStore(canvasImage, pixelCoords, PushConstants.Colour);
-        }
-    }
+
+    imageStore(canvasImage, pixelCoord, resultColour);
 }
