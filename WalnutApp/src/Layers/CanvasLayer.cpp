@@ -1,97 +1,93 @@
 #include "CanvasLayer.h"
 
-#include <glm/glm.hpp>
-#include <iostream>
+#include "../Serialisation/FileReader.h"
+#include "../Tools/Options/Brush/BrushShape.h"
+#include "../Tools/Options/Brush/BrushPushData.h"
+#include "../Tools/Options/Fill/FillCanvasData.h"
 
-CanvasLayer::CanvasLayer(uint32_t canvasWidth, uint32_t canvasHeight)
-	: m_CanvasWidth(canvasWidth), m_CanvasHeight(canvasHeight) {}
+#include <vector>
+
+static uint32_t g_ComputeQueueFamily = (uint32_t)-1;
+
+CanvasLayer::CanvasLayer(std::shared_ptr<Stylus::CoreContext> context)
+	: m_Context(context) {}
+
+CanvasLayer::CanvasLayer(std::shared_ptr<Stylus::CoreContext> context, uint32_t canvasWidth, uint32_t canvasHeight)
+	: m_Context(context), m_CanvasWidth(canvasWidth), m_CanvasHeight(canvasHeight) {}
+
+void CanvasLayer::OnAttach()
+{
+	m_CanvasImage = std::make_shared<Walnut::Image>(m_CanvasWidth, m_CanvasHeight, Walnut::ImageFormat::RGBA);
+	m_Context->ShaderRegistry->SetCanvasImage(m_CanvasImage);
+
+	vkDeviceWaitIdle(Walnut::Application::GetDevice());
+
+	Stylus::FillCanvasPushData pushData{};
+	pushData.Colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	auto fillCanvasShader = m_Context->ShaderRegistry->Get(Stylus::EffectEnum::FillCanvas);
+	fillCanvasShader->DispatchShader(&pushData);
+}
 
 void CanvasLayer::OnUIRender()
 {
 	ImGui::Begin("Canvas");
 
-	if (m_CanvasImage)
+	const uint32_t width = static_cast<uint32_t>(ImGui::GetContentRegionAvail().x);
+	const uint32_t height = static_cast<uint32_t>(ImGui::GetContentRegionAvail().y);
+
+	if (!m_CanvasImage || m_CanvasImage->GetWidth() != width || m_CanvasImage->GetHeight() != height)
 	{
-		ImGui::Image(m_CanvasImage->GetDescriptorSet(), { static_cast<float>(m_CanvasWidth), static_cast<float>(m_CanvasHeight) });
+		m_CanvasWidth = width;
+		m_CanvasHeight = height;
+
+		OnAttach();
 	}
+
+	ImGui::Image(m_CanvasImage->GetDescriptorSet(), { static_cast<float>(m_CanvasWidth), static_cast<float>(m_CanvasHeight) });
+	m_IsCanvasHovered = ImGui::IsItemHovered();
 
 	ImVec2 minImageBounds = ImGui::GetItemRectMin();
 	ImVec2 maxImageBounds = ImGui::GetItemRectMax();
-	ImVec2 mousePos = ImGui::GetMousePos();
+	ImVec2 imGuiMousePos = ImGui::GetMousePos();
 
-	float x = mousePos.x - minImageBounds.x;
-	float y = mousePos.y - minImageBounds.y;
+	float x = imGuiMousePos.x - minImageBounds.x;
+	float y = imGuiMousePos.y - minImageBounds.y;
 
-	// TODO: dispatch compute shader
-	if (ImGui::IsMouseDown(0))
-	{
-		uint32_t colour = 255 << 24 | 0 << 16 | 0 << 8 | 255;
-		DrawWithRadius(x, y, 5, colour);
-	}
-	else if (ImGui::IsMouseDown(1))
-	{
-		uint32_t colour = 255 << 24 | 255 << 16 | 0 << 8 | 0;
-		DrawWithRadius(x, y, 5, colour);
-	}
+	m_MousePos = glm::vec2(x, y);
 
 	ImGui::End();
 }
 
-void CanvasLayer::DrawWithRadius(int32_t centreX, int32_t centreY, int radius, uint32_t colour)
+void CanvasLayer::OnUpdate(float ts)
 {
-	int32_t xMin = centreX - radius;
-	int32_t xMax = centreX + radius;
-
-	int32_t yMin = centreY - radius;
-	int32_t yMax = centreY + radius;
-
-	for (int32_t y = yMin; y < yMax; ++y)
+	if (ImGui::IsMouseClicked(0) && m_IsCanvasHovered)
 	{
-		for (int32_t x = xMin; x < xMax; ++x)
-		{
-			if (IsInBounds(x, y))
-			{
-				uint32_t index = static_cast<uint32_t>(x + y * m_CanvasWidth);
-				m_CanvasData[index] = colour;
-
-				m_CanvasImage->SetData(m_CanvasData.get());
-			}
-		}
+		m_LeftMouseDown = true;
 	}
-}
-
-void CanvasLayer::OnAttach()
-{
-	if (!m_CanvasImage)
+	else if (ImGui::IsMouseClicked(1) && m_IsCanvasHovered)
 	{
-		m_CanvasImage = std::make_shared<Walnut::Image>(m_CanvasWidth, m_CanvasHeight, Walnut::ImageFormat::RGBA);
+		m_RightMouseDown = true;
 	}
 
-	if (!m_CanvasData)
+	if (ImGui::IsMouseReleased(0))
 	{
-		m_CanvasData = std::make_unique<uint32_t[]>(uint32_t(m_CanvasWidth * m_CanvasHeight));
+		m_LeftMouseDown = false;
 	}
 
-	for (uint32_t y = 0; y < m_CanvasHeight; ++y)
+	if (ImGui::IsMouseReleased(1))
 	{
-		for (uint32_t x = 0; x < m_CanvasWidth; ++x)
-		{
-			uint32_t index = x + y * m_CanvasWidth;
-
-			uint8_t r = glm::floor(static_cast<double>(x) / m_CanvasWidth * 255);
-			uint8_t g = glm::floor(static_cast<double>(y) / m_CanvasHeight * 255);
-			uint8_t b = 0;
-			uint8_t a = 255;
-
-			auto data = m_CanvasData.get();
-			m_CanvasData.get()[index] = a << 24 | b << 16 | g << 8 | r;
-		}
+		m_RightMouseDown = false;
 	}
 
-	m_CanvasImage->SetData(m_CanvasData.get());
-}
+	if (m_LeftMouseDown)
+	{
+		m_Context->ToolManager->Use(m_MousePos, m_PrevMousePos, ImGuiMouseButton_Left);
+	}
+	else if (m_RightMouseDown)
+	{
+		m_Context->ToolManager->Use(m_MousePos, m_PrevMousePos, ImGuiMouseButton_Right);
+	}
 
-bool CanvasLayer::IsInBounds(float x, float y)
-{
-	return x >= 0 && x < m_CanvasImage->GetWidth() && y >= 0 && y < m_CanvasImage->GetHeight();
+	m_PrevMousePos = m_MousePos;
 }

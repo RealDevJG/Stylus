@@ -22,6 +22,11 @@ namespace Walnut {
 
 		void SetData(const void* data);
 
+		// NOTE: added by Stylus
+		VkImage GetImage() const { return m_Image; }
+		// NOTE: added by Stylus
+		VkImageView GetImageView() const { return m_ImageView; }
+
 		VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
 
 		void Resize(uint32_t width, uint32_t height);

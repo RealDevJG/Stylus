@@ -1,19 +1,18 @@
 #include "Layers/ApplicationLayer.h"
 #include "Layers/CanvasLayer.h"
 #include "Layers/UILayer.h"
-
-#include <memory>
+#include "CoreContext.h"
 
 #include <Walnut/Application.h>
 #include <Walnut/EntryPoint.h>
-
 #include <Walnut/Image.h>
 #include <Walnut/UI/UI.h>
+
+#include <memory>
 
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 {
 	Walnut::ApplicationSpecification spec;
-
 	spec.Name = "Stylus";
 	spec.CustomTitlebar = true;
 	spec.CenterWindow = true;
@@ -21,17 +20,20 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	spec.Height = 720;
 
 	Walnut::Application* app = new Walnut::Application(spec);
+	app->SetApplicationIcon(std::make_shared<Walnut::Image>("assets/images/icons/app-icon.png"));
 
-	std::shared_ptr<Walnut::Image> appIcon = std::make_shared<Walnut::Image>("assets\\images\\icons\\app-icon.png");
-	app->SetApplicationIcon(appIcon);
+	auto context = std::make_shared<Stylus::CoreContext>();
+	context->OptionsRegistry = std::make_shared<Stylus::ToolOptionsRegistry>();
+	context->ToolStore = std::make_shared<Stylus::ToolStore>();
+	context->ShaderRegistry = std::make_shared<Stylus::ShaderRegistry>(context->ToolStore);
+	context->ToolManager = std::make_shared<Stylus::ToolManager>(context->ShaderRegistry, context->OptionsRegistry);
 
-	std::shared_ptr<ApplicationLayer> applicationLayer = std::make_shared<ApplicationLayer>();
+	auto applicationLayer = std::make_shared<ApplicationLayer>(context);
+	auto canvasLayer = std::make_shared<CanvasLayer>(context);
+	auto uiLayer = std::make_shared<UiLayer>(context);
+
 	app->PushLayer(applicationLayer);
-
-	std::shared_ptr<CanvasLayer> canvasLayer = std::make_shared<CanvasLayer>(1024, 512);
 	app->PushLayer(canvasLayer);
-
-	std::shared_ptr<UiLayer> uiLayer = std::make_shared<UiLayer>();
 	app->PushLayer(uiLayer);
 
 	app->SetMenubarCallback([app, applicationLayer]()

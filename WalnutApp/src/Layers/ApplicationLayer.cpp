@@ -2,10 +2,18 @@
 
 #include <Walnut/UI/UI.h>
 
-void ApplicationLayer::OnUIRender()
+void ApplicationLayer::OnAttach()
 {
-
+	m_Context->ToolManager->SetTool(Stylus::ToolEnum::Brush);
 }
+
+void ApplicationLayer::OnDetach()
+{
+	m_Context->ShaderRegistry->Cleanup();
+}
+
+// Potential debug stuff
+void ApplicationLayer::OnUIRender() {}
 
 void ApplicationLayer::UI_DrawAboutModal()
 {
