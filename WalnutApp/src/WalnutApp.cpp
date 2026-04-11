@@ -24,7 +24,8 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 
 	auto context = std::make_shared<Stylus::CoreContext>();
 	context->OptionsRegistry = std::make_shared<Stylus::ToolOptionsRegistry>();
-	context->ShaderRegistry = std::make_shared<Stylus::ShaderRegistry>();
+	context->ToolStore = std::make_shared<Stylus::ToolStore>();
+	context->ShaderRegistry = std::make_shared<Stylus::ShaderRegistry>(context->ToolStore);
 	context->ToolManager = std::make_shared<Stylus::ToolManager>(context->ShaderRegistry, context->OptionsRegistry);
 
 	auto applicationLayer = std::make_shared<ApplicationLayer>(context);

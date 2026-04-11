@@ -26,7 +26,6 @@ namespace Stylus {
 
 		ToolOptionsRegistry();
 		[[nodiscard]] ToolHooks GetHooks(ToolEnum tool) { return m_ToolMap.at(tool); }
-		[[nodiscard]] std::vector<ToolEnum> GetTools();
 	private:
 		glm::vec4 m_PrimaryColour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 		glm::vec4 m_SecondaryColour = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);

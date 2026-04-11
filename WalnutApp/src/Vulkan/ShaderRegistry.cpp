@@ -1,15 +1,25 @@
 #include "ShaderRegistry.h"
 
-#include "../Tools/Options/Brush/BrushPushData.h"
 #include "../Tools/Options/Fill/FillCanvasData.h"
+
 #include "../Tools/EffectEnum.h"
 #include "../Tools/ToolEnum.h"
 
 namespace Stylus {
 
+    ShaderRegistry::ShaderRegistry(std::shared_ptr<ToolStore> toolStore)
+        : m_ToolStore(toolStore) {}
+
     void ShaderRegistry::SetCanvasImage(std::shared_ptr<Walnut::Image> canvasImage)
     {
-        m_ToolShaders.insert_or_assign(ToolEnum::Brush, std::make_shared<ComputePipeline>(canvasImage, "assets/shaders/brush.spv", sizeof(BrushPushData)));
+        const std::unordered_map<Stylus::ToolEnum, Stylus::ToolData>& tools = m_ToolStore->GetTools();
+
+        for (auto& [toolEnum, toolData] : tools)
+        {
+            m_ToolShaders.insert_or_assign(toolEnum, std::make_shared<ComputePipeline>(canvasImage, toolData.ShaderPath, toolData.PushConstantStructSize));
+        }
+
+        // TODO: give effects the same treatment as tools above
         m_EffectShaders.insert_or_assign(EffectEnum::FillCanvas, std::make_shared<ComputePipeline>(canvasImage, "assets/shaders/fill-canvas.spv", sizeof(FillCanvasPushData)));
     }
 

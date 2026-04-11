@@ -1,5 +1,7 @@
 #version 450
 
+#include "sdfs.glsl"
+
 layout(binding = 0, rgba8) uniform image2D canvasImage;
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
@@ -11,32 +13,6 @@ layout(push_constant) uniform PushData {
 	float Radius;
     bool Antialiased;
 } PushConstants;
-
-float sdCircle(vec2 pos, float radius)
-{
-    return length(pos) - radius;
-}
-
-float sdSquare(vec2 pos, float radius)
-{
-    return length(min(pos, -radius) + max(pos, radius));
-}
-
-float sdTriangle(vec2 pos, float radius)
-{
-    const float k = sqrt(3.0);
-
-    pos.x = abs(pos.x) - radius;
-    pos.y = pos.y + radius / k;
-
-    if (pos.x + k * pos.y > 0.0)
-    {
-        pos = vec2(pos.x - k * pos.y, -k * pos.x - pos.y) / 2.0;
-    }
-
-    pos.x -= clamp(pos.x, -2.0 * radius, 0.0);
-    return -length(pos) * sign(pos.y);
-}
 
 void main()
 {
@@ -59,10 +35,10 @@ void main()
 
         vec2 localPos = pixelPos - samplePos;
 
-        float signedDistance;
+        float signedDistance = 1e10;
         if (PushConstants.Shape == 0) signedDistance = sdCircle(localPos, PushConstants.Radius);
         else if (PushConstants.Shape == 1) signedDistance = sdSquare(localPos, PushConstants.Radius);
-        else if (PushConstants.Shape == 3) signedDistance = sdTriangle(localPos, PushConstants.Radius);
+        else if (PushConstants.Shape == 2) signedDistance = sdTriangle(localPos, PushConstants.Radius);
 
         if (PushConstants.Antialiased)
         {
