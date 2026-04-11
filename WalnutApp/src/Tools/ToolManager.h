@@ -23,7 +23,6 @@ namespace Stylus {
 	private:
 		ToolEnum m_CurrentTool = ToolEnum::Brush;
 
-		std::shared_ptr<ComputePipeline> m_ToolShader;
 		std::shared_ptr<ShaderRegistry> m_ShaderRegistry;
 		std::shared_ptr<ToolOptionsRegistry> m_OptionsRegistry;
 	};
