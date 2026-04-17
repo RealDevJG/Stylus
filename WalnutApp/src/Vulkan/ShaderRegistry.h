@@ -1,13 +1,11 @@
 #pragma once
 
-#include "../Tools/ToolEnum.h"
+#include "ComputeShader.h"
 #include "../Tools/EffectEnum.h"
-#include "../Tools/ToolStore.h"
-#include "ComputePipeline.h"
+#include "../Tools/ToolData.h"
+#include "../Tools/ToolEnum.h"
 
 #include <Walnut/Image.h>
-
-#include <array>
 #include <unordered_map>
 
 namespace Stylus {
@@ -15,22 +13,25 @@ namespace Stylus {
 	class ShaderRegistry
 	{
 	public:
-		ShaderRegistry(std::shared_ptr<ToolStore> toolStore);
+		ShaderRegistry() = default;
+		~ShaderRegistry() = default;
 
+		ShaderRegistry(const ShaderRegistry&) = delete;
+		ShaderRegistry& operator=(const ShaderRegistry&) = delete;
+		ShaderRegistry(ShaderRegistry&&) = delete;
+		ShaderRegistry& operator=(ShaderRegistry&&) = delete;
+
+		void Init();
 		void SetCanvasImage(std::shared_ptr<Walnut::Image> canvasImage);
-		[[nodiscard]] std::shared_ptr<ComputePipeline> Get(ToolEnum tool);
-		[[nodiscard]] std::shared_ptr<ComputePipeline> Get(EffectEnum effect);
+		std::shared_ptr<ComputeShader> RegisterAndGet(ToolEnum tool, const ToolData& toolData);
 
-		void Cleanup()
-		{
-			m_ToolShaders.clear();
-			m_EffectShaders.clear();
-		}
+		[[nodiscard]] std::shared_ptr<ComputeShader> Get(ToolEnum tool) const;
+		[[nodiscard]] std::shared_ptr<ComputeShader> Get(EffectEnum effect) const;
+
+		void Cleanup();
 	private:
-		std::unordered_map<ToolEnum, std::shared_ptr<ComputePipeline>> m_ToolShaders{};
-		std::unordered_map<EffectEnum, std::shared_ptr<ComputePipeline>> m_EffectShaders{};
-
-		std::shared_ptr<ToolStore> m_ToolStore;
+		std::unordered_map<ToolEnum, std::shared_ptr<ComputeShader>> m_ToolShaders{};
+		std::unordered_map<EffectEnum, std::shared_ptr<ComputeShader>> m_EffectShaders{};
 	};
 
 }

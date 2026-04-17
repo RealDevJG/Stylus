@@ -1,36 +1,59 @@
 #include "ShaderRegistry.h"
 
-#include "../Tools/Options/Fill/FillCanvasData.h"
-
-#include "../Tools/EffectEnum.h"
-#include "../Tools/ToolEnum.h"
+#include "../CoreContext.h"
+#include "../Tools/Fill/FillCanvasData.h"
+#include "../Tools/ToolStore.h"
 
 namespace Stylus {
 
-    ShaderRegistry::ShaderRegistry(std::shared_ptr<ToolStore> toolStore)
-        : m_ToolStore(toolStore) {}
+    void ShaderRegistry::Init()
+    {
+        // TODO: register effects externally like tools
+        m_EffectShaders.insert_or_assign(EffectEnum::FillCanvas, std::make_shared<ComputeShader>("assets/shaders/fill-canvas.spv", sizeof(FillCanvasPushData)));
+    }
 
     void ShaderRegistry::SetCanvasImage(std::shared_ptr<Walnut::Image> canvasImage)
     {
-        const std::unordered_map<Stylus::ToolEnum, Stylus::ToolData>& tools = m_ToolStore->GetTools();
-
-        for (auto& [toolEnum, toolData] : tools)
+        for (auto& [toolEnum, shader] : m_ToolShaders)
         {
-            m_ToolShaders.insert_or_assign(toolEnum, std::make_shared<ComputePipeline>(canvasImage, toolData.ShaderPath, toolData.PushConstantStructSize));
+            shader->SetImage(canvasImage);
         }
 
-        // TODO: give effects the same treatment as tools above
-        m_EffectShaders.insert_or_assign(EffectEnum::FillCanvas, std::make_shared<ComputePipeline>(canvasImage, "assets/shaders/fill-canvas.spv", sizeof(FillCanvasPushData)));
+        for (auto& [toolEnum, shader] : m_EffectShaders)
+        {
+            shader->SetImage(canvasImage);
+        }
     }
 
-    std::shared_ptr<ComputePipeline> ShaderRegistry::Get(ToolEnum tool)
+    // TODO: refactor the entire system of registering shaders and tools so they can work independently
+    std::shared_ptr<ComputeShader> ShaderRegistry::RegisterAndGet(ToolEnum tool, const ToolData& toolData)
     {
-        return m_ToolShaders[tool];
+        std::shared_ptr<ComputeShader> shader = m_ToolShaders[tool];
+
+        if (shader)
+        {
+            return shader;
+        }
+
+        m_ToolShaders.insert_or_assign(tool, std::make_shared<ComputeShader>(toolData.ShaderPath, toolData.PushConstantStructSize));
+
+        return Get(tool);
     }
 
-    std::shared_ptr<ComputePipeline> ShaderRegistry::Get(EffectEnum effect)
+    std::shared_ptr<ComputeShader> ShaderRegistry::Get(ToolEnum tool) const
     {
-        return m_EffectShaders[effect];
+        return m_ToolShaders.at(tool);
+    }
+
+    std::shared_ptr<ComputeShader> ShaderRegistry::Get(EffectEnum effect) const
+    {
+        return m_EffectShaders.at(effect);
+    }
+
+    void ShaderRegistry::Cleanup()
+    {
+        m_ToolShaders.clear();
+        m_EffectShaders.clear();
     }
 
 }

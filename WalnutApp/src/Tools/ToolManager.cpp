@@ -1,35 +1,33 @@
 #include "ToolManager.h"
 
-#include "../Tools/Options/ToolOptionsRegistry.h"
-#include "../Vulkan/ComputePipeline.h"
+#include "Tool.h"
+#include "../CoreContext.h"
+#include "../Tools/ToolStore.h"
 
 namespace Stylus {
 
-    ToolManager::ToolManager(std::shared_ptr<ShaderRegistry> shaderRegistry, std::shared_ptr<ToolOptionsRegistry> optionsRegistry)
-        : m_ShaderRegistry(shaderRegistry),
-          m_OptionsRegistry(optionsRegistry)
-    {}
-
-    void ToolManager::Use(glm::vec2 mousePos, glm::vec2 prevMousePos, ImGuiMouseButton mouseButton)
+    void ToolManager::UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
     {
-        ToolOptionsRegistry::ToolHooks hooks = m_OptionsRegistry->GetHooks(m_CurrentTool);
-
-        // TODO: change shader variables to be different left vs right click
-        if (mouseButton == ImGuiMouseButton_Left)
+        if (auto tool = m_CurrentTool.lock())
         {
-            auto shader = m_ShaderRegistry->Get(m_CurrentTool).get();
-            hooks.LeftClickDispatch(shader, mousePos, prevMousePos);
-        }
-        else if (mouseButton == ImGuiMouseButton_Right)
-        {
-            auto shader = m_ShaderRegistry->Get(m_CurrentTool).get();
-            hooks.RightClickDispatch(shader, mousePos, prevMousePos);
+            tool->UseLeftClick(mousePos, prevMousePos);
         }
     }
 
-    void ToolManager::SetTool(ToolEnum tool)
+    void ToolManager::UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
     {
-        m_CurrentTool = tool;
+        if (auto tool = m_CurrentTool.lock())
+        {
+            tool->UseRightClick(mousePos, prevMousePos);
+        }
+    }
+
+    const void ToolManager::SetTool(ToolEnum tool)
+    {
+        m_CurrentToolEnum = tool;
+
+        const ToolStore& toolStore = CoreContext::s_Instance->GetToolStore();
+        m_CurrentTool = toolStore.GetTool(tool);
     }
 
 }

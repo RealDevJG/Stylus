@@ -5,19 +5,19 @@
 #include <Walnut/Application.h>
 #include <memory>
 
-class ApplicationLayer final : public Walnut::Layer
-{
-public:
-	ApplicationLayer(std::shared_ptr<Stylus::CoreContext> context)
-		: m_Context(context) {}
+namespace Stylus {
 
-	virtual void OnAttach() override;
-	virtual void OnDetach() override;
-	virtual void OnUIRender() override;
+	class ApplicationLayer final : public Walnut::Layer
+	{
+	public:
+		virtual void OnAttach() override;
+		virtual void OnDetach() override;
 
-	void UI_DrawAboutModal();
-	void ShowAboutModal();
-private:
-	bool m_AboutModalOpen = false;
-	std::shared_ptr<Stylus::CoreContext> m_Context;
-};
+		void UI_DrawAboutModal();
+		void ShowAboutModal();
+	private:
+		bool m_AboutModalOpen = false;
+		std::unique_ptr<CoreContext> m_CoreContext;
+	};
+
+}

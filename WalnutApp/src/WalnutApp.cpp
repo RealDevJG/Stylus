@@ -1,7 +1,6 @@
 #include "Layers/ApplicationLayer.h"
 #include "Layers/CanvasLayer.h"
 #include "Layers/UILayer.h"
-#include "CoreContext.h"
 
 #include <Walnut/Application.h>
 #include <Walnut/EntryPoint.h>
@@ -22,15 +21,9 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	Walnut::Application* app = new Walnut::Application(spec);
 	app->SetApplicationIcon(std::make_shared<Walnut::Image>("assets/images/icons/app-icon.png"));
 
-	auto context = std::make_shared<Stylus::CoreContext>();
-	context->OptionsRegistry = std::make_shared<Stylus::ToolOptionsRegistry>();
-	context->ToolStore = std::make_shared<Stylus::ToolStore>();
-	context->ShaderRegistry = std::make_shared<Stylus::ShaderRegistry>(context->ToolStore);
-	context->ToolManager = std::make_shared<Stylus::ToolManager>(context->ShaderRegistry, context->OptionsRegistry);
-
-	auto applicationLayer = std::make_shared<ApplicationLayer>(context);
-	auto canvasLayer = std::make_shared<CanvasLayer>(context);
-	auto uiLayer = std::make_shared<UiLayer>(context);
+	auto applicationLayer = std::make_shared<Stylus::ApplicationLayer>();
+	auto canvasLayer = std::make_shared<Stylus::CanvasLayer>();
+	auto uiLayer = std::make_shared<Stylus::UiLayer>();
 
 	app->PushLayer(applicationLayer);
 	app->PushLayer(canvasLayer);

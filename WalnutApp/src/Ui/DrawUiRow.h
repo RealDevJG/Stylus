@@ -14,7 +14,8 @@ namespace Stylus {
         size_t totalElements = sizeof...(UIControls);
         size_t currentIndex = 0;
 
-        ([&] {
+        ([&]
+        {
             packedControls();
             currentIndex++;
 
@@ -22,7 +23,7 @@ namespace Stylus {
             {
                 ImGui::SameLine(0.0f, 25.0f);
             }
-            }(), ...);
+        }(), ...);
 
         ImGui::PopStyleColor(2);
         ImGui::PopItemWidth();

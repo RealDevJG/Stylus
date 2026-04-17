@@ -1,17 +1,16 @@
 #pragma once
 
-#include "../CoreContext.h"
 #include "../Ui/UIDrawer.h"
-
 #include <Walnut/Application.h>
 
-class UiLayer final : public Walnut::Layer
-{
-public:
-	UiLayer(std::shared_ptr<Stylus::CoreContext> context);
+namespace Stylus {
 
-	virtual void OnUIRender() override;
-private:
-	std::shared_ptr<Stylus::CoreContext> m_Context;
-	Stylus::UIDrawer m_UiDrawer;
-};
+	class UiLayer final : public Walnut::Layer
+	{
+	public:
+		virtual void OnUIRender() override;
+	private:
+		UIDrawer m_UiDrawer;
+	};
+
+}

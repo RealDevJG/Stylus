@@ -1,35 +1,47 @@
 #include "UILayer.h"
 
-#include "../Tools/Options/Brush/BrushShape.h"
+#include "../CoreContext.h"
+#include "../Tools/Tool.h"
 #include "../Tools/ToolData.h"
 #include "../Tools/ToolEnum.h"
+#include "../Tools/ToolManager.h"
+#include "../Tools/ToolOptionsRegistry.h"
+#include "../Tools/ToolStore.h"
 
 #include <imgui.h>
-#include <unordered_map>
 
-UiLayer::UiLayer(std::shared_ptr<Stylus::CoreContext> context)
-	: m_Context(context), m_UiDrawer(context) {}
+namespace Stylus {
 
-void UiLayer::OnUIRender()
-{
-	Stylus::ToolEnum currentTool = m_Context->ToolManager->GetTool();
-
-	ImGui::Begin("Tool Bar");
-
-	float width = ImGui::GetContentRegionAvail().x;
-	const std::unordered_map<Stylus::ToolEnum, Stylus::ToolData>& tools = m_Context->ToolStore->GetTools();
-
-	for (const auto& [toolEnum, toolData] : tools)
+	void UiLayer::OnUIRender()
 	{
-		m_UiDrawer.DrawToolButton(toolEnum, toolData, width);
+		ToolManager& toolManager = CoreContext::s_Instance->GetToolManager();
+		std::weak_ptr<const Tool> currentTool = toolManager.GetTool();
+
+		ToolStore& toolStore = CoreContext::s_Instance->GetToolStore();
+		ToolOptionsRegistry& optionsRegistry = CoreContext::s_Instance->GetToolOptionsRegistry();
+
+		ImGui::Begin("Tool Bar");
+
+		float width = ImGui::GetContentRegionAvail().x;
+		const auto& tools = toolStore.GetTools();
+
+		for (const auto& [toolEnum, tool] : tools)
+		{
+			const ToolData& toolData = tool->GetToolData();
+			m_UiDrawer.DrawToolButton(toolEnum, toolData, width);
+		}
+
+		ImGui::End();
+
+		ImGui::Begin("Tool Options");
+
+		// TODO: make m_UiDrawer do the work so it can be extended in the future
+		if (auto tool = currentTool.lock())
+		{
+			tool->DrawOptionsUI();
+		}
+
+		ImGui::End();
 	}
 
-	ImGui::End();
-
-	ImGui::Begin("Tool Options");
-
-	auto hooks = m_Context->OptionsRegistry->GetHooks(currentTool);
-	m_UiDrawer.DrawToolOptions(hooks.DrawUI);
-
-	ImGui::End();
 }

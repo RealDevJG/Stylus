@@ -1,23 +1,25 @@
 #include "UIDrawer.h"
 
+#include "../CoreContext.h"
+#include "../Tools/ToolManager.h"
+
 #include <imgui.h>
 
 namespace Stylus {
 
-	UIDrawer::UIDrawer(std::shared_ptr<CoreContext> context)
-	: m_Context(context) {}
-
-	void Stylus::UIDrawer::DrawToolButton(ToolEnum toolEnum, ToolData toolData, float width)
+	void UIDrawer::DrawToolButton(ToolEnum toolEnum, ToolData toolData, float width) const
 	{
 		if (ImGui::Button(toolData.Name.c_str(), ImVec2(width, 35)))
 		{
-			m_Context->ToolManager->SetTool(toolEnum);
+			ToolManager& toolManager = CoreContext::s_Instance->GetToolManager();
+			toolManager.SetTool(toolEnum);
 		}
 	}
 
-	void Stylus::UIDrawer::DrawToolOptions(std::function<void()> drawHook)
+	// NOTE: no longer used, to be remade in the future
+	void UIDrawer::DrawToolOptions(const std::function<void()> drawOptions) const
 	{
-		drawHook();
+		drawOptions();
 	}
 
 }

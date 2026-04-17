@@ -1,22 +1,29 @@
 #pragma once
 
-#include "ToolData.h"
+#include "Tool.h"
 #include "ToolEnum.h"
 
 #include <unordered_map>
-#include <vector>
 
 namespace Stylus {
 
 	class ToolStore
 	{
 	public:
-		ToolStore();
+		ToolStore() = default;
+		~ToolStore() = default;
 
-		[[nodiscard]] const std::unordered_map<Stylus::ToolEnum, Stylus::ToolData>& GetTools();
-		[[nodiscard]] ToolData GetToolData(ToolEnum tool);
+		ToolStore(const ToolStore&) = delete;
+		ToolStore& operator=(const ToolStore&) = delete;
+		ToolStore(ToolStore&&) = delete;
+		ToolStore& operator=(ToolStore&&) = delete;
+
+		void Init();
+
+		[[nodiscard]] std::shared_ptr<const Tool> GetTool(ToolEnum tool) const;
+		[[nodiscard]] const std::unordered_map<ToolEnum, std::shared_ptr<const Tool>>& GetTools() const;
 	private:
-		std::unordered_map<ToolEnum, ToolData> m_ToolData;
+		std::unordered_map<ToolEnum, std::shared_ptr<const Tool>> m_Tools;
 	};
 
 }

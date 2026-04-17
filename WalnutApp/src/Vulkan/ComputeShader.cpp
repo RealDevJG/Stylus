@@ -1,15 +1,17 @@
-#include "ComputePipeline.h"
+#include "ComputeShader.h"
 
 #include "../Serialisation/FileReader.h"
 #include <Walnut/Application.h>
 
+#include <cassert>
+#include <iostream>
+
 namespace Stylus {
 
-	ComputePipeline::ComputePipeline(std::shared_ptr<Walnut::Image> canvasImage, const std::filesystem::path& shaderPath, uint32_t pushSize)
+	ComputeShader::ComputeShader(const std::filesystem::path& shaderPath, uint32_t pushSize)
 		: m_Device(Walnut::Application::GetDevice()),
   		  m_PhysicalDevice(Walnut::Application::GetPhysicalDevice()),
   		  m_QueueFamilyIndex(Walnut::Application::GetQueueFamilyIndex()),
-  		  m_CanvasImage(canvasImage),
 		  m_PushSize(pushSize)
 	{
 		CreateLayouts();
@@ -17,10 +19,10 @@ namespace Stylus {
 		CreatePools();
 		CreateCommandBuffer();
 
-		AllocateDescriptorSet();
+		AllocateDescriptorSets();
 	}
 
-	ComputePipeline::~ComputePipeline()
+	ComputeShader::~ComputeShader()
 	{
 		// Wait for GPU to finish before deleting
 		vkDeviceWaitIdle(m_Device);
@@ -34,10 +36,28 @@ namespace Stylus {
 		vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
 	}
 
-	void ComputePipeline::DispatchShader(const void* pushData)
+	void ComputeShader::SetImage(std::shared_ptr<Walnut::Image> canvasImage)
 	{
+		vkDeviceWaitIdle(m_Device);
+
+		m_CanvasImage = canvasImage;
+		UpdateDescriptorSets();
+	}
+
+	void ComputeShader::DispatchShader(const void* pushData)
+	{
+		assert(m_CanvasImage && "[ComputeShader] DispatchShader was called without using SetImage() first\n");
+
+		if (!m_CanvasImage)
+		{
+			std::cerr << "[ComputeShader] DispatchShader was called without using SetImage() first\n";
+			return;
+		}
+
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+		vkResetCommandBuffer(m_CommandBuffer, 0);
 		vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
 
 		// Transition Image to General (write)
@@ -97,7 +117,8 @@ namespace Stylus {
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &m_CommandBuffer;
 
-		VkQueue computeQueue = Walnut::Application::GetQueue();
+		//VkQueue computeQueue = Walnut::Application::GetQueue();
+		VkQueue computeQueue{};
 		vkGetDeviceQueue(m_Device, m_QueueFamilyIndex, 0, &computeQueue);
 
 		// Submit and wait for it to finish (for simplicity rn, not optimal for performance)
@@ -106,7 +127,7 @@ namespace Stylus {
 		vkQueueWaitIdle(computeQueue);
 	}
 
-	void ComputePipeline::CreateComputePipeline(const std::filesystem::path& shaderPath)
+	void ComputeShader::CreateComputePipeline(const std::filesystem::path& shaderPath)
 	{
 		VkShaderModule shaderModule = CreateShaderModule(shaderPath);
 
@@ -127,7 +148,7 @@ namespace Stylus {
 		vkDestroyShaderModule(m_Device, shaderModule, nullptr);
 	}
 
-	VkShaderModule ComputePipeline::CreateShaderModule(const std::filesystem::path& shaderPath)
+	VkShaderModule ComputeShader::CreateShaderModule(const std::filesystem::path& shaderPath)
 	{
 		Stylus::FileReader fileReader(shaderPath);
 		std::vector<uint32_t> fileBuffer = fileReader.Read();
@@ -145,7 +166,7 @@ namespace Stylus {
 		return shaderModule;
 	}
 
-	void ComputePipeline::CreateLayouts()
+	void ComputeShader::CreateLayouts()
 	{
 		VkDescriptorSetLayoutBinding imageBinding{};
 		imageBinding.binding = 0;
@@ -180,7 +201,7 @@ namespace Stylus {
 		check_vk_result(result);
 	}
 
-	void ComputePipeline::CreatePools()
+	void ComputeShader::CreatePools()
 	{
 		VkDescriptorPoolSize poolSize{};
 		poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
@@ -195,7 +216,7 @@ namespace Stylus {
 		vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_DescriptorPool);
 	}
 
-	void ComputePipeline::CreateCommandBuffer()
+	void ComputeShader::CreateCommandBuffer()
 	{
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -213,7 +234,7 @@ namespace Stylus {
 		vkAllocateCommandBuffers(m_Device, &allocInfo, &m_CommandBuffer);
 	}
 
-	void ComputePipeline::AllocateDescriptorSet()
+	void ComputeShader::AllocateDescriptorSets()
 	{
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -222,7 +243,10 @@ namespace Stylus {
 		allocInfo.pSetLayouts = &m_DescriptorSetLayout;
 
 		vkAllocateDescriptorSets(m_Device, &allocInfo, &m_DescriptorSet);
+	}
 
+	void ComputeShader::UpdateDescriptorSets()
+	{
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.imageView = m_CanvasImage->GetImageView();
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
