@@ -2,6 +2,7 @@
 
 #include "Brush/BrushTool.h"
 #include "Brush/BrushPushData.h"
+#include "ColourPicker/ColourPickerTool.h"
 #include "Eraser/EraserTool.h"
 #include "Eraser/EraserPushData.h"
 
@@ -49,6 +50,16 @@ namespace Stylus {
 			};
 
 			m_Tools.insert_or_assign(ToolEnum::Eraser, std::make_shared<EraserTool>(eraserTool));
+		}
+
+		{
+			const ColourPickerTool colourPickerTool = ColourPickerTool{
+				optionsRegistry.CreateUiDrawer<TSE::PrimaryColour, TSE::SecondaryColour>(),
+				{ "Colour Picker" },
+				ColourPickerSettingsContext{ &optionsRegistry }
+			};
+
+			m_Tools.insert_or_assign(ToolEnum::ColourPicker, std::make_shared<ColourPickerTool>(colourPickerTool));
 		}
 	}
 

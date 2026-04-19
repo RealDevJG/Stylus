@@ -14,7 +14,7 @@ namespace Stylus {
 	class BrushTool final : public Tool
 	{
 	public:
-		BrushTool(std::function<void()> drawStrategy, ToolData toolData, std::shared_ptr<ComputeShader> shader, BrushSettingsContext context);
+		BrushTool(std::function<void()> drawUiStrategy, ToolData toolData, std::shared_ptr<ComputeShader> shader, BrushSettingsContext context);
 
 		void UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const override;
 		void UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const override;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "vulkan/vulkan.h"
 
@@ -21,6 +22,8 @@ namespace Walnut {
 		~Image();
 
 		void SetData(const void* data);
+		// NOTE: added by Stylus
+		std::vector<uint8_t> ReadPixels(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
 		// NOTE: added by Stylus
 		VkImage GetImage() const { return m_Image; }
@@ -56,9 +59,11 @@ namespace Walnut {
 		VkDescriptorSet m_DescriptorSet = nullptr;
 
 		std::string m_Filepath;
+
+		// NOTE: added by Stylus
+		VkBuffer m_ReadbackBuffer = nullptr;
+		VkDeviceMemory m_ReadbackBufferMemory = nullptr;
+		size_t m_ReadbackBufferSize = 0;
 	};
 
 }
-
-
-

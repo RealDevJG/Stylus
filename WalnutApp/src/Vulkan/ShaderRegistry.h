@@ -23,8 +23,8 @@ namespace Stylus {
 
 		void Init();
 		void SetCanvasImage(std::shared_ptr<Walnut::Image> canvasImage);
-		std::shared_ptr<ComputeShader> RegisterAndGet(ToolEnum tool, const ToolData& toolData);
 
+		std::shared_ptr<ComputeShader> RegisterAndGet(ToolEnum tool, const ToolData& toolData);
 		[[nodiscard]] std::shared_ptr<ComputeShader> Get(ToolEnum tool) const;
 		[[nodiscard]] std::shared_ptr<ComputeShader> Get(EffectEnum effect) const;
 

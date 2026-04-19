@@ -106,8 +106,8 @@ namespace Walnut {
 			info.arrayLayers = 1;
 			info.samples = VK_SAMPLE_COUNT_1_BIT;
 			info.tiling = VK_IMAGE_TILING_OPTIMAL;
-			// NOTE: Added VK_IMAGE_USAGE_STORAGE_BIT as a part of Stylus
-			info.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+			// NOTE: Added VK_IMAGE_USAGE_STORAGE_BIT and VK_IMAGE_USAGE_TRANSFER_SRC_BIT as a part of Stylus
+			info.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 			info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			err = vkCreateImage(device, &info, nullptr, &m_Image);
@@ -157,12 +157,35 @@ namespace Walnut {
 
 		// Create the Descriptor Set:
 		m_DescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_Sampler, m_ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+		// NOTE: added by stylus
+		m_ReadbackBufferSize = m_Width * m_Height * Utils::BytesPerPixel(m_Format);
+
+		VkBufferCreateInfo buffer_info = {};
+		buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		buffer_info.size = m_ReadbackBufferSize;
+		buffer_info.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		vkCreateBuffer(device, &buffer_info, nullptr, &m_ReadbackBuffer);
+
+		VkMemoryRequirements req;
+		vkGetBufferMemoryRequirements(device, m_ReadbackBuffer, &req);
+
+		VkMemoryAllocateInfo alloc_info = {};
+		alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		alloc_info.allocationSize = req.size;
+		alloc_info.memoryTypeIndex = Utils::GetVulkanMemoryType(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, req.memoryTypeBits);
+
+		vkAllocateMemory(device, &alloc_info, nullptr, &m_ReadbackBufferMemory);
+		vkBindBufferMemory(device, m_ReadbackBuffer, m_ReadbackBufferMemory, 0);
 	}
 
 	void Image::Release()
 	{
 		Application::SubmitResourceFree([sampler = m_Sampler, imageView = m_ImageView, image = m_Image,
-			memory = m_Memory, stagingBuffer = m_StagingBuffer, stagingBufferMemory = m_StagingBufferMemory]()
+			memory = m_Memory, stagingBuffer = m_StagingBuffer, stagingBufferMemory = m_StagingBufferMemory,
+			// NOTE: added by stylus
+			readbackBuffer = m_ReadbackBuffer, readbackMemory = m_ReadbackBufferMemory]()
 		{
 			VkDevice device = Application::GetDevice();
 
@@ -172,6 +195,10 @@ namespace Walnut {
 			vkFreeMemory(device, memory, nullptr);
 			vkDestroyBuffer(device, stagingBuffer, nullptr);
 			vkFreeMemory(device, stagingBufferMemory, nullptr);
+	
+			// NOTE: added by stylus
+			vkDestroyBuffer(device, readbackBuffer, nullptr);
+			vkFreeMemory(device, readbackMemory, nullptr);
 		});
 
 		m_Sampler = nullptr;
@@ -180,6 +207,10 @@ namespace Walnut {
 		m_Memory = nullptr;
 		m_StagingBuffer = nullptr;
 		m_StagingBufferMemory = nullptr;
+
+		// NOTE: added by stylus
+		m_ReadbackBuffer = nullptr;
+		m_ReadbackBufferMemory = nullptr;
 	}
 
 	void Image::SetData(const void* data)
@@ -273,6 +304,69 @@ namespace Walnut {
 
 			Application::FlushCommandBuffer(command_buffer);
 		}
+	}
+
+	std::vector<uint8_t> Image::ReadPixels(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+	{
+		// Safety check
+		if (x + width > m_Width || y + height > m_Height)
+			return {};
+
+		VkDevice device = Application::GetDevice();
+		VkCommandBuffer commandBuffer = Application::GetCommandBuffer(true);
+
+		VkImageMemoryBarrier copyBarrier = {};
+		copyBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		copyBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+		copyBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		copyBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		copyBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		copyBarrier.image = m_Image;
+		copyBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		copyBarrier.subresourceRange.levelCount = 1;
+		copyBarrier.subresourceRange.layerCount = 1;
+		copyBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+		copyBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+			VK_PIPELINE_STAGE_TRANSFER_BIT,
+			0, 0, nullptr, 0, nullptr, 1, &copyBarrier
+		);
+
+		VkBufferImageCopy region = {};
+		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		region.imageSubresource.layerCount = 1;
+		region.imageOffset = { (int32_t)x, (int32_t)y, 0 };
+		region.imageExtent = { width, height, 1 };
+
+		vkCmdCopyImageToBuffer(commandBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_ReadbackBuffer, 1, &region);
+
+		VkImageMemoryBarrier revertBarrier = copyBarrier;
+		revertBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		revertBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+		revertBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		revertBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT;
+
+		vkCmdPipelineBarrier(
+			commandBuffer,
+			VK_PIPELINE_STAGE_TRANSFER_BIT,
+			VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+			0, 0, nullptr, 0, nullptr, 1, &revertBarrier
+		);
+
+		Application::FlushCommandBuffer(commandBuffer);
+
+		uint32_t bytesToRead = width * height * Utils::BytesPerPixel(m_Format);
+		std::vector<uint8_t> resultData(bytesToRead);
+
+		void* mappedData;
+		vkMapMemory(device, m_ReadbackBufferMemory, 0, bytesToRead, 0, &mappedData);
+		memcpy(resultData.data(), mappedData, bytesToRead);
+		vkUnmapMemory(device, m_ReadbackBufferMemory);
+
+		return resultData;
 	}
 
 	void Image::Resize(uint32_t width, uint32_t height)

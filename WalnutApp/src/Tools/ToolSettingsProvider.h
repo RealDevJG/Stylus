@@ -18,6 +18,15 @@ namespace Stylus {
 			static_assert(((Setting == AllowedSettings) || ...), "Get: Tool is trying to access a setting it isn't configured to. It needs adding to ToolStore.cpp");
 			return m_OptionsRegistry->GetValue<Setting>();
 		}
+
+		template<ToolSettingsEnum Setting>
+		void Set(auto newVal) const
+		{
+			static_assert(((Setting == AllowedSettings) || ...), "Get: Tool is trying to access a setting it isn't configured to. It needs adding to ToolStore.cpp");
+
+			auto& val = m_OptionsRegistry->GetVal<Setting>();
+			val = newVal;
+		}
 	private:
 		ToolOptionsRegistry* m_OptionsRegistry;
 	};

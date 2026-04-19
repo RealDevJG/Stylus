@@ -15,6 +15,8 @@ namespace Stylus {
 		virtual void OnAttach() override;
 		virtual void OnUIRender() override;
 		virtual void OnUpdate(float ts) override;
+
+		std::shared_ptr<Walnut::Image> GetCanvasImage() const { return m_CanvasImage; }
 	private:
 		std::shared_ptr<Walnut::Image> m_CanvasImage{};
 

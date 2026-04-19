@@ -24,7 +24,18 @@ namespace Stylus {
 		ToolOptionsRegistry& operator=(ToolOptionsRegistry&&) = delete;
 
 		template<ToolSettingsEnum Setting>
-		const auto& GetValue()
+		const auto& GetValue() const
+		{
+			if constexpr (Setting == ToolSettingsEnum::PrimaryColour) return m_PrimaryColour;
+			else if constexpr (Setting == ToolSettingsEnum::SecondaryColour) return m_SecondaryColour;
+			else if constexpr (Setting == ToolSettingsEnum::Width) return m_ToolWidth;
+			else if constexpr (Setting == ToolSettingsEnum::Shape) return m_ToolShape;
+			else if constexpr (Setting == ToolSettingsEnum::Antialiasing) return m_Antialiased;
+			else static_assert(dependent_false<Setting>, "GetValue: Unhandled ToolSettingEnum value");
+		}
+
+		template<ToolSettingsEnum Setting>
+		auto& GetVal()
 		{
 			if constexpr (Setting == ToolSettingsEnum::PrimaryColour) return m_PrimaryColour;
 			else if constexpr (Setting == ToolSettingsEnum::SecondaryColour) return m_SecondaryColour;

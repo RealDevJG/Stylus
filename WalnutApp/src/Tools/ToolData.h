@@ -8,8 +8,8 @@ namespace Stylus {
 	struct ToolData
 	{
 		std::string Name;
-		std::filesystem::path ShaderPath;
-		size_t PushConstantStructSize;
+		std::filesystem::path ShaderPath{};
+		size_t PushConstantStructSize{};
 	};
 
 }

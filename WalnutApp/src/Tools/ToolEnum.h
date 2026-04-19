@@ -5,7 +5,8 @@ namespace Stylus {
 	enum class ToolEnum
 	{
 		Brush = 0,
-		Eraser
+		Eraser,
+		ColourPicker
 	};
 
 }
