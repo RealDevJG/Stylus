@@ -5,7 +5,6 @@
 #include "../Tools/ToolData.h"
 #include "../Tools/ToolEnum.h"
 #include "../Tools/ToolManager.h"
-#include "../Tools/ToolOptionsRegistry.h"
 #include "../Tools/ToolStore.h"
 
 #include <imgui.h>
@@ -14,21 +13,17 @@ namespace Stylus {
 
 	void UiLayer::OnUIRender()
 	{
+		ToolStore& toolStore = CoreContext::s_Instance->GetToolStore();
 		ToolManager& toolManager = CoreContext::s_Instance->GetToolManager();
 		std::weak_ptr<const Tool> currentTool = toolManager.GetTool();
 
-		ToolStore& toolStore = CoreContext::s_Instance->GetToolStore();
-		ToolOptionsRegistry& optionsRegistry = CoreContext::s_Instance->GetToolOptionsRegistry();
-
 		ImGui::Begin("Tool Bar");
 
-		float width = ImGui::GetContentRegionAvail().x;
 		const auto& tools = toolStore.GetTools();
-
 		for (const auto& [toolEnum, tool] : tools)
 		{
 			const ToolData& toolData = tool->GetToolData();
-			m_UiDrawer.DrawToolButton(toolEnum, toolData, width);
+			m_UiDrawer.DrawToolButton(toolEnum, toolData);
 		}
 
 		ImGui::End();

@@ -7,8 +7,10 @@
 
 namespace Stylus {
 
-	void UIDrawer::DrawToolButton(ToolEnum toolEnum, ToolData toolData, float width) const
+	void UIDrawer::DrawToolButton(ToolEnum toolEnum, ToolData toolData) const
 	{
+		const float width = ImGui::GetContentRegionAvail().x;
+
 		if (ImGui::Button(toolData.Name.c_str(), ImVec2(width, 35)))
 		{
 			ToolManager& toolManager = CoreContext::s_Instance->GetToolManager();

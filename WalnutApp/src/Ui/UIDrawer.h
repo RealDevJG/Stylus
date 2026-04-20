@@ -10,7 +10,7 @@ namespace Stylus {
 	class UIDrawer
 	{
 	public:
-		void DrawToolButton(ToolEnum toolEnum, ToolData toolData, float width) const;
+		void DrawToolButton(ToolEnum toolEnum, ToolData toolData) const;
 		void DrawToolOptions(const std::function<void()> drawOptions) const;
 	};
 
