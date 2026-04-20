@@ -4,8 +4,8 @@ VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 IncludeDir = {}
 IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
-IncludeDir["glm"] = "../vendor/glm"
-IncludeDir["spdlog"] = "../vendor/spdlog/include"
+IncludeDir["glm"] = path.getabsolute("vendor/glm")
+IncludeDir["spdlog"] = path.getabsolute("vendor/spdlog/include")
 
 LibraryDir = {}
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
@@ -20,7 +20,7 @@ group "Dependencies"
 group ""
 
 group "Core"
-    include "Walnut/Build-Walnut.lua"
+    include "vendor/Walnut/Build-Walnut.lua"
 
     -- Optional modules
     if os.isfile("Walnut-Modules/Walnut-Networking/Build-Walnut-Networking.lua") then

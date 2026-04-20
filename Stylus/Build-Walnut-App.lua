@@ -1,28 +1,35 @@
-project "WalnutApp"
+project "Stylus"
    kind "ConsoleApp"
    language "C++"
    cppdialect "C++20"
    targetdir "bin/%{cfg.buildcfg}"
    staticruntime "off"
 
-   files { "src/**.h", "src/**.cpp" }
+   files
+   {
+      "assets/**.comp",
+      "assets/**.glsl",
+
+      "src/**.h",
+      "src/**.cpp"
+   }
 
    includedirs
    {
       "../vendor/imgui",
       "../vendor/glfw/include",
 
-      "../Walnut/Source",
-      "../Walnut/Platform/GUI",
+      "../vendor/Walnut/Source",
+      "../vendor/Walnut/Platform/GUI",
 
       "%{IncludeDir.VulkanSDK}",
-      "%{IncludeDir.glm}",
+      "%{IncludeDir.glm}"
    }
 
-    links
-    {
-        "Walnut"
-    }
+   links
+   {
+      "Walnut"
+   }
 
    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")

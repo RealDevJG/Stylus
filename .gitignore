@@ -2,14 +2,14 @@
 .vs/
 bin/
 bin-int/
-WalnutApp/logs/
+Stylus/logs/
 
 # Files
 *.vcxproj
 *.vcxproj.user
 *.vcxproj.filters
 *.sln
-WalnutApp/imgui.ini
+Stylus/imgui.ini
 
 # Exclude
 !vendor/bin
