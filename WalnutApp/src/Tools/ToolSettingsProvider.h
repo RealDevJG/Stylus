@@ -24,7 +24,7 @@ namespace Stylus {
 		{
 			static_assert(((Setting == AllowedSettings) || ...), "Get: Tool is trying to access a setting it isn't configured to. It needs adding to ToolStore.cpp");
 
-			auto& val = m_OptionsRegistry->GetVal<Setting>();
+			auto& val = m_OptionsRegistry->GetValue<Setting>();
 			val = newVal;
 		}
 	private:

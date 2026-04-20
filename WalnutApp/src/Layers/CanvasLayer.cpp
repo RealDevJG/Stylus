@@ -14,17 +14,14 @@ namespace Stylus {
 
 	void CanvasLayer::OnAttach()
 	{
-		ShaderRegistry& shaderRegistry = CoreContext::s_Instance->GetShaderRegistry();
-
 		m_CanvasImage = std::make_shared<Walnut::Image>(m_CanvasWidth, m_CanvasHeight, Walnut::ImageFormat::RGBA);
+
+		ShaderRegistry& shaderRegistry = CoreContext::s_Instance->GetShaderRegistry();
 		shaderRegistry.SetCanvasImage(m_CanvasImage);
 
-		vkDeviceWaitIdle(Walnut::Application::GetDevice());
-
-		FillCanvasPushData pushData{};
-		pushData.Colour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-
 		auto fillCanvasShader = shaderRegistry.Get(EffectEnum::FillCanvas);
+
+		FillCanvasPushData pushData{ glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) };
 		fillCanvasShader->DispatchShader(&pushData);
 	}
 
