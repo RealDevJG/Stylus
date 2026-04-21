@@ -10,5 +10,5 @@ workspace "Stylus"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-include "Build-Walnut-External.lua"
-include "Stylus/Build-Walnut-App.lua"
+include "Build-Stylus-External.lua"
+include "Stylus/Build-Stylus-App.lua"

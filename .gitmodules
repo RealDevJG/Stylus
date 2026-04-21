@@ -14,3 +14,7 @@
 [submodule "vendor/yaml-cpp"]
 	path = vendor/yaml-cpp
 	url = https://github.com/TheCherno/yaml-cpp
+[submodule "vendor/walnut"]
+	path = vendor/walnut
+	url = https://github.com/RealDevJG/Walnut.git
+	branch = forked-dev

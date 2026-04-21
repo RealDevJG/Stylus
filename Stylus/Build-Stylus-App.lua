@@ -19,8 +19,8 @@ project "Stylus"
       "../vendor/imgui",
       "../vendor/glfw/include",
 
-      "../vendor/Walnut/Source",
-      "../vendor/Walnut/Platform/GUI",
+      "../vendor/walnut/Walnut/Platform/GUI",
+      "../vendor/walnut/Walnut/Source",
 
       "%{IncludeDir.VulkanSDK}",
       "%{IncludeDir.glm}"
