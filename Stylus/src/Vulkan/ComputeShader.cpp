@@ -117,7 +117,6 @@ namespace Stylus {
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &m_CommandBuffer;
 
-		//VkQueue computeQueue = Walnut::Application::GetQueue();
 		VkQueue computeQueue{};
 		vkGetDeviceQueue(m_Device, m_QueueFamilyIndex, 0, &computeQueue);
 
