@@ -23,6 +23,12 @@ namespace Stylus {
 		shaderRegistry.Cleanup();
 	}
 
+	void ApplicationLayer::OnEvent(Walnut::Event& event)
+	{
+		Walnut::EventDispatcher dispatcher(event);
+		dispatcher.Dispatch<Walnut::KeyPressedEvent>([this](Walnut::KeyPressedEvent& e) { return OnKeyPressed(e); });
+	}
+
 	void ApplicationLayer::UI_DrawAboutModal()
 	{
 		if (!m_AboutModalOpen)
@@ -57,6 +63,22 @@ namespace Stylus {
 	void ApplicationLayer::ShowAboutModal()
 	{
 		m_AboutModalOpen = true;
+	}
+
+	bool ApplicationLayer::OnKeyPressed(Walnut::KeyPressedEvent& event)
+	{
+		ToolManager& toolManager = CoreContext::s_Instance->GetToolManager();
+		ToolStore& toolStore = CoreContext::s_Instance->GetToolStore();
+
+		ToolEnum toolEnum = toolStore.GetToolEnum(event.GetKeyCode());
+
+		if (toolEnum == ToolEnum::None)
+		{
+			return false;
+		}
+
+		toolManager.SetTool(toolEnum);
+		return true;
 	}
 
 }

@@ -22,7 +22,8 @@ namespace Stylus {
 			ToolData toolData{
 				"Brush",
 				"assets/shaders/brush.spv",
-				sizeof(BrushPushData)
+				sizeof(BrushPushData),
+				Walnut::KeyCode::B
 			};
 
 			const BrushTool brushTool = BrushTool{
@@ -32,6 +33,7 @@ namespace Stylus {
 				BrushSettingsContext{ &optionsRegistry }
 			};
 
+			m_KeyShortcuts.insert_or_assign(toolData.KeyShortcut, ToolEnum::Brush);
 			m_Tools.insert_or_assign(ToolEnum::Brush, std::make_shared<BrushTool>(brushTool));
 		}
 
@@ -39,7 +41,8 @@ namespace Stylus {
 			ToolData toolData{
 				"Eraser",
 				"assets/shaders/brush.spv",
-				sizeof(EraserPushData)
+				sizeof(EraserPushData),
+				Walnut::KeyCode::E
 			};
 
 			const EraserTool eraserTool = EraserTool{
@@ -49,16 +52,22 @@ namespace Stylus {
 				EraserSettingsContext{ &optionsRegistry }
 			};
 
+			m_KeyShortcuts.insert_or_assign(toolData.KeyShortcut, ToolEnum::Eraser);
 			m_Tools.insert_or_assign(ToolEnum::Eraser, std::make_shared<EraserTool>(eraserTool));
 		}
 
 		{
+			ToolData toolData{};
+			toolData.Name = "Colour Picker";
+			toolData.KeyShortcut = Walnut::KeyCode::I;
+
 			const ColourPickerTool colourPickerTool = ColourPickerTool{
 				optionsRegistry.CreateUiDrawer<TSE::PrimaryColour, TSE::SecondaryColour>(),
-				{ "Colour Picker" },
+				toolData,
 				ColourPickerSettingsContext{ &optionsRegistry }
 			};
 
+			m_KeyShortcuts.insert_or_assign(toolData.KeyShortcut, ToolEnum::ColourPicker);
 			m_Tools.insert_or_assign(ToolEnum::ColourPicker, std::make_shared<ColourPickerTool>(colourPickerTool));
 		}
 	}
@@ -66,6 +75,16 @@ namespace Stylus {
 	std::shared_ptr<const Tool> ToolStore::GetTool(ToolEnum tool) const
 	{
 		return m_Tools.at(tool);
+	}
+
+	ToolEnum ToolStore::GetToolEnum(Walnut::KeyCode shortcut) const
+	{
+		auto it = m_KeyShortcuts.find(shortcut);
+
+		if (it != m_KeyShortcuts.end())
+			return it->second;
+
+		return ToolEnum::None;
 	}
 
 	const std::unordered_map<Stylus::ToolEnum, std::shared_ptr<const Tool>>& ToolStore::GetTools() const
