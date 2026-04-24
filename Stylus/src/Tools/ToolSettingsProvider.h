@@ -1,7 +1,9 @@
 #pragma once
 
 #include "ToolSettingsEnum.h"
-#include "ToolOptionsRegistry.h"
+#include "ToolSettingsRegistry.h"
+
+#include <memory>
 
 namespace Stylus {
 
@@ -9,26 +11,26 @@ namespace Stylus {
 	class ToolSettingsProvider
 	{
 	public:
-		ToolSettingsProvider(ToolOptionsRegistry* optionsRegistry)
-			: m_OptionsRegistry(optionsRegistry) {}
+		ToolSettingsProvider(std::shared_ptr<ToolSettingsRegistry> toolSettingsRegistry)
+			: m_ToolSettingsRegistry(toolSettingsRegistry) {}
 
 		template<ToolSettingsEnum Setting>
 		const auto& Get() const
 		{
-			static_assert(((Setting == AllowedSettings) || ...), "Get: Tool is trying to access a setting it isn't configured to. It needs adding to ToolStore.cpp");
-			return m_OptionsRegistry->GetValue<Setting>();
+			static_assert(((Setting == AllowedSettings) || ...), "Get: Tool is trying to access a setting it isn't configured to. It needs adding to ToolRegistry.cpp");
+			return m_ToolSettingsRegistry->GetValue<Setting>();
 		}
 
 		template<ToolSettingsEnum Setting>
 		void Set(auto newVal) const
 		{
-			static_assert(((Setting == AllowedSettings) || ...), "Get: Tool is trying to access a setting it isn't configured to. It needs adding to ToolStore.cpp");
+			static_assert(((Setting == AllowedSettings) || ...), "Get: Tool is trying to access a setting it isn't configured to. It needs adding to ToolRegistry.cpp");
 
-			auto& val = m_OptionsRegistry->GetValue<Setting>();
+			auto& val = m_ToolSettingsRegistry->GetValue<Setting>();
 			val = newVal;
 		}
 	private:
-		ToolOptionsRegistry* m_OptionsRegistry;
+		std::shared_ptr<ToolSettingsRegistry> m_ToolSettingsRegistry;
 	};
 
 }

@@ -1,8 +1,6 @@
 #include "UIDrawer.h"
 
-#include "../CoreContext.h"
 #include "../Tools/ToolManager.h"
-
 #include <imgui.h>
 
 namespace Stylus {
@@ -13,8 +11,7 @@ namespace Stylus {
 
 		if (ImGui::Button(toolData.Name.c_str(), ImVec2(width, 35)))
 		{
-			ToolManager& toolManager = CoreContext::s_Instance->GetToolManager();
-			toolManager.SetTool(toolEnum);
+			m_ToolManager->SetTool(toolEnum);
 		}
 	}
 

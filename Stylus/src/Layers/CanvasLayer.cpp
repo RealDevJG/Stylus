@@ -1,25 +1,19 @@
 #include "CanvasLayer.h"
 
-#include "../CoreContext.h"
-#include "../Tools/ToolManager.h"
 #include "../Tools/Fill/FillCanvasData.h"
+#include "../Tools/ToolManager.h"
 #include "../Vulkan/ShaderRegistry.h"
 
 namespace Stylus {
 
 	static uint32_t g_ComputeQueueFamily = (uint32_t)-1;
 
-	CanvasLayer::CanvasLayer(uint32_t canvasWidth, uint32_t canvasHeight)
-		: m_CanvasWidth(canvasWidth), m_CanvasHeight(canvasHeight) {}
-
 	void CanvasLayer::OnAttach()
 	{
 		m_CanvasImage = std::make_shared<Walnut::Image>(m_CanvasWidth, m_CanvasHeight, Walnut::ImageFormat::RGBA);
+		m_ShaderRegistry->SetCanvasImage(m_CanvasImage);
 
-		ShaderRegistry& shaderRegistry = CoreContext::s_Instance->GetShaderRegistry();
-		shaderRegistry.SetCanvasImage(m_CanvasImage);
-
-		auto fillCanvasShader = shaderRegistry.Get(EffectEnum::FillCanvas);
+		auto fillCanvasShader = m_ShaderRegistry->Get(EffectEnum::FillCanvas);
 
 		FillCanvasPushData pushData{ glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) };
 		fillCanvasShader->DispatchShader(&pushData);
@@ -57,8 +51,7 @@ namespace Stylus {
 
 	void CanvasLayer::OnUpdate(float ts)
 	{
-		ToolManager& toolManager = CoreContext::s_Instance->GetToolManager();
-
+		// TODO: eventify this mouse down thing
 		if (ImGui::IsMouseClicked(0) && m_IsCanvasHovered)
 		{
 			m_LeftMouseDown = true;
@@ -80,11 +73,11 @@ namespace Stylus {
 
 		if (m_LeftMouseDown)
 		{
-			toolManager.UseLeftClick(m_MousePos, m_PrevMousePos);
+			m_ToolManager->UseLeftClick(m_MousePos, m_PrevMousePos);
 		}
 		else if (m_RightMouseDown)
 		{
-			toolManager.UseRightClick(m_MousePos, m_PrevMousePos);
+			m_ToolManager->UseRightClick(m_MousePos, m_PrevMousePos);
 		}
 
 		m_PrevMousePos = m_MousePos;

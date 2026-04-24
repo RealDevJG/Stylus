@@ -1,7 +1,7 @@
 #include "ApplicationLayer.h"
 
-#include "../CoreContext.h"
 #include "../Tools/ToolManager.h"
+#include "../Tools/ToolRegistry.h"
 #include "../Vulkan/ShaderRegistry.h"
 
 #include <Walnut/UI/UI.h>
@@ -10,17 +10,12 @@ namespace Stylus {
 
 	void ApplicationLayer::OnAttach()
 	{
-		m_CoreContext = std::make_unique<CoreContext>();
-		m_CoreContext->Init();
-
-		ToolManager& toolManager = CoreContext::s_Instance->GetToolManager();
-		toolManager.SetTool(ToolEnum::Brush);
+		m_ToolManager->SetTool(ToolEnum::Brush);
 	}
 
 	void ApplicationLayer::OnDetach()
 	{
-		ShaderRegistry& shaderRegistry = CoreContext::s_Instance->GetShaderRegistry();
-		shaderRegistry.Cleanup();
+		m_ShaderRegistry->Cleanup();
 	}
 
 	void ApplicationLayer::OnEvent(Walnut::Event& event)
@@ -67,17 +62,14 @@ namespace Stylus {
 
 	bool ApplicationLayer::OnKeyPressed(Walnut::KeyPressedEvent& event)
 	{
-		ToolManager& toolManager = CoreContext::s_Instance->GetToolManager();
-		ToolStore& toolStore = CoreContext::s_Instance->GetToolStore();
-
-		ToolEnum toolEnum = toolStore.GetToolEnum(event.GetKeyCode());
+		ToolEnum toolEnum = m_ToolRegistry->GetToolEnum(event.GetKeyCode());
 
 		if (toolEnum == ToolEnum::None)
 		{
 			return false;
 		}
 
-		toolManager.SetTool(toolEnum);
+		m_ToolManager->SetTool(toolEnum);
 		return true;
 	}
 

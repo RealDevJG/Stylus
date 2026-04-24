@@ -1,8 +1,7 @@
 #include "ShaderRegistry.h"
 
-#include "../CoreContext.h"
 #include "../Tools/Fill/FillCanvasData.h"
-#include "../Tools/ToolStore.h"
+#include "../Tools/ToolRegistry.h"
 
 namespace Stylus {
 

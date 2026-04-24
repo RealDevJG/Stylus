@@ -1,10 +1,14 @@
 #include "ToolManager.h"
 
 #include "Tool.h"
-#include "../CoreContext.h"
-#include "../Tools/ToolStore.h"
+#include "../Tools/ToolRegistry.h"
 
 namespace Stylus {
+
+    void ToolManager::Init(std::shared_ptr<ToolRegistry> toolRegistry)
+    {
+        m_ToolRegistry = toolRegistry;
+    }
 
     void ToolManager::UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
     {
@@ -25,9 +29,7 @@ namespace Stylus {
     const void ToolManager::SetTool(ToolEnum tool)
     {
         m_CurrentToolEnum = tool;
-
-        const ToolStore& toolStore = CoreContext::s_Instance->GetToolStore();
-        m_CurrentTool = toolStore.GetTool(tool);
+        m_CurrentTool = m_ToolRegistry->GetTool(tool);
     }
 
 }

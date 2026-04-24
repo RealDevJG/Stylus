@@ -6,11 +6,16 @@
 
 namespace Stylus {
 
+	class ToolManager;
+	class ShaderRegistry;
+
 	class CanvasLayer final : public Walnut::Layer
 	{
 	public:
-		CanvasLayer() = default;
-		CanvasLayer(uint32_t canvasWidth, uint32_t canvasHeight);
+		CanvasLayer(std::shared_ptr<ToolManager> toolManager, std::shared_ptr<ShaderRegistry> shaderRegistry)
+			: m_ToolManager(toolManager), m_ShaderRegistry(shaderRegistry) {}
+		CanvasLayer(std::shared_ptr<ToolManager> toolManager, std::shared_ptr<ShaderRegistry> shaderRegistry, uint32_t canvasWidth, uint32_t canvasHeight)
+			: m_ToolManager(toolManager), m_ShaderRegistry(shaderRegistry), m_CanvasWidth(canvasWidth), m_CanvasHeight(canvasHeight) {}
 
 		virtual void OnAttach() override;
 		virtual void OnUIRender() override;
@@ -28,6 +33,9 @@ namespace Stylus {
 		bool m_IsCanvasHovered = false;
 		bool m_LeftMouseDown = false;
 		bool m_RightMouseDown = false;
+
+		std::shared_ptr<ToolManager> m_ToolManager;
+		std::shared_ptr<ShaderRegistry> m_ShaderRegistry;
 	};
 
 }

@@ -10,16 +10,16 @@
 
 namespace Stylus {
 
-	class ToolOptionsRegistry
+	class ToolSettingsRegistry
 	{
 	public:
-		ToolOptionsRegistry() = default;
-		~ToolOptionsRegistry() = default;
+		ToolSettingsRegistry() = default;
+		~ToolSettingsRegistry() = default;
 
-		ToolOptionsRegistry(const ToolOptionsRegistry&) = delete;
-		ToolOptionsRegistry& operator=(const ToolOptionsRegistry&) = delete;
-		ToolOptionsRegistry(ToolOptionsRegistry&&) = delete;
-		ToolOptionsRegistry& operator=(ToolOptionsRegistry&&) = delete;
+		ToolSettingsRegistry(const ToolSettingsRegistry&) = delete;
+		ToolSettingsRegistry& operator=(const ToolSettingsRegistry&) = delete;
+		ToolSettingsRegistry(ToolSettingsRegistry&&) = delete;
+		ToolSettingsRegistry& operator=(ToolSettingsRegistry&&) = delete;
 
 		template<ToolSettingsEnum Setting>
 		auto& GetValue()

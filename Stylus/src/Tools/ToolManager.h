@@ -8,6 +8,7 @@
 namespace Stylus {
 
 	class Tool;
+	class ToolRegistry;
 
 	class ToolManager
 	{
@@ -20,6 +21,8 @@ namespace Stylus {
 		ToolManager(ToolManager&&) = delete;
 		ToolManager& operator=(ToolManager&&) = delete;
 
+		void Init(std::shared_ptr<ToolRegistry> toolRegistry);
+
 		void UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const;
 		void UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const;
 
@@ -28,6 +31,8 @@ namespace Stylus {
 	private:
 		std::weak_ptr<const Tool> m_CurrentTool;
 		ToolEnum m_CurrentToolEnum = ToolEnum::Brush;
+
+		std::shared_ptr<ToolRegistry> m_ToolRegistry;
 	};
 
 }
