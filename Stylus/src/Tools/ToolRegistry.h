@@ -31,9 +31,6 @@ namespace Stylus {
 	private:
 		std::unordered_map<ToolEnum, std::shared_ptr<const Tool>> m_Tools;
 		std::unordered_map<Walnut::KeyCode, ToolEnum> m_KeyShortcuts;
-
-		std::shared_ptr<ToolSettingsRegistry> m_ToolSettingsRegistry;
-		std::shared_ptr<ShaderRegistry> m_ShaderRegistry;
 	};
 
 }

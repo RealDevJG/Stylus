@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <string_view>
 
 namespace Stylus {
 
@@ -16,7 +17,7 @@ namespace Stylus {
 		UIDrawer(std::shared_ptr<ToolManager> toolManager)
 			: m_ToolManager(toolManager) {}
 
-		void DrawToolButton(ToolEnum toolEnum, ToolData toolData) const;
+		void DrawToolButton(ToolEnum toolEnum, std::string_view toolName) const;
 		void DrawToolOptions(const std::function<void()> drawOptions) const;
 	private:
 		std::shared_ptr<ToolManager> m_ToolManager;

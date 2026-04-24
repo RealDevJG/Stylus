@@ -5,17 +5,16 @@
 
 namespace Stylus {
 
-	void UIDrawer::DrawToolButton(ToolEnum toolEnum, ToolData toolData) const
+	void UIDrawer::DrawToolButton(ToolEnum toolEnum, std::string_view toolName) const
 	{
 		const float width = ImGui::GetContentRegionAvail().x;
 
-		if (ImGui::Button(toolData.Name.c_str(), ImVec2(width, 35)))
+		if (ImGui::Button(toolName.data(), ImVec2(width, 35)))
 		{
 			m_ToolManager->SetTool(toolEnum);
 		}
 	}
 
-	// NOTE: no longer used, to be remade in the future
 	void UIDrawer::DrawToolOptions(const std::function<void()> drawOptions) const
 	{
 		drawOptions();

@@ -4,6 +4,8 @@
 #include "../Tools/ToolManager.h"
 #include "../Vulkan/ShaderRegistry.h"
 
+#include <Walnut/Input/KeyCodes.h>
+
 namespace Stylus {
 
 	static uint32_t g_ComputeQueueFamily = (uint32_t)-1;
@@ -13,10 +15,17 @@ namespace Stylus {
 		m_CanvasImage = std::make_shared<Walnut::Image>(m_CanvasWidth, m_CanvasHeight, Walnut::ImageFormat::RGBA);
 		m_ShaderRegistry->SetCanvasImage(m_CanvasImage);
 
-		auto fillCanvasShader = m_ShaderRegistry->Get(EffectEnum::FillCanvas);
-
 		FillCanvasPushData pushData{ glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) };
+
+		auto fillCanvasShader = m_ShaderRegistry->Get(EffectEnum::FillCanvas);
 		fillCanvasShader->DispatchShader(&pushData);
+	}
+
+	void CanvasLayer::OnEvent(Walnut::Event& event)
+	{
+		Walnut::EventDispatcher dispatcher(event);
+		dispatcher.Dispatch<Walnut::MousePressedEvent>([this](Walnut::MousePressedEvent& e) { return OnMousePressed(e); });
+		dispatcher.Dispatch<Walnut::MouseReleasedEvent>([this](Walnut::MouseReleasedEvent& e) { return OnMouseReleased(e); });
 	}
 
 	void CanvasLayer::OnUIRender()
@@ -35,7 +44,7 @@ namespace Stylus {
 		}
 
 		ImGui::Image(m_CanvasImage->GetDescriptorSet(), { static_cast<float>(m_CanvasWidth), static_cast<float>(m_CanvasHeight) });
-		m_IsCanvasHovered = ImGui::IsItemHovered();
+		m_CanvasHovered = ImGui::IsItemHovered();
 
 		ImVec2 minImageBounds = ImGui::GetItemRectMin();
 		ImVec2 maxImageBounds = ImGui::GetItemRectMax();
@@ -51,26 +60,6 @@ namespace Stylus {
 
 	void CanvasLayer::OnUpdate(float ts)
 	{
-		// TODO: eventify this mouse down thing
-		if (ImGui::IsMouseClicked(0) && m_IsCanvasHovered)
-		{
-			m_LeftMouseDown = true;
-		}
-		else if (ImGui::IsMouseClicked(1) && m_IsCanvasHovered)
-		{
-			m_RightMouseDown = true;
-		}
-
-		if (ImGui::IsMouseReleased(0))
-		{
-			m_LeftMouseDown = false;
-		}
-
-		if (ImGui::IsMouseReleased(1))
-		{
-			m_RightMouseDown = false;
-		}
-
 		if (m_LeftMouseDown)
 		{
 			m_ToolManager->UseLeftClick(m_MousePos, m_PrevMousePos);
@@ -81,6 +70,41 @@ namespace Stylus {
 		}
 
 		m_PrevMousePos = m_MousePos;
+	}
+
+	bool CanvasLayer::OnMousePressed(Walnut::MousePressedEvent& event)
+	{
+		if (!m_CanvasHovered)
+		{
+			return false;
+		}
+
+		if (event.GetMouseButton() == Walnut::MouseButton::Left)
+		{
+			m_LeftMouseDown = true;
+		}
+
+		if (event.GetMouseButton() == Walnut::MouseButton::Right)
+		{
+			m_RightMouseDown = true;
+		}
+
+		return true;
+	}
+
+	bool CanvasLayer::OnMouseReleased(Walnut::MouseReleasedEvent& event)
+	{
+		if (event.GetMouseButton() == Walnut::MouseButton::Left)
+		{
+			m_LeftMouseDown = false;
+		}
+
+		if (event.GetMouseButton() == Walnut::MouseButton::Right)
+		{
+			m_RightMouseDown = false;
+		}
+
+		return false;
 	}
 
 }

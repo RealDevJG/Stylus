@@ -14,10 +14,6 @@ namespace Stylus {
 
 	void ToolRegistry::Init(std::shared_ptr<ToolSettingsRegistry> toolSettingsRegistry, std::shared_ptr<ShaderRegistry> shaderRegistry)
 	{
-		// TODO: might not need members at all
-		m_ToolSettingsRegistry = toolSettingsRegistry;
-		m_ShaderRegistry = shaderRegistry;
-
 		{
 			ToolData toolData{
 				"Brush",
@@ -27,10 +23,10 @@ namespace Stylus {
 			};
 
 			const BrushTool brushTool = BrushTool{
-				m_ToolSettingsRegistry->CreateUiDrawer<TSE::Width, TSE::Shape, TSE::PrimaryColour, TSE::SecondaryColour, TSE::Antialiasing>(),
+				toolSettingsRegistry->CreateUiDrawer<TSE::Width, TSE::Shape, TSE::PrimaryColour, TSE::SecondaryColour, TSE::Antialiasing>(),
 				toolData,
-				m_ShaderRegistry->RegisterAndGet(ToolEnum::Brush, toolData),
-				BrushSettingsContext{ m_ToolSettingsRegistry }
+				shaderRegistry->RegisterAndGet(ToolEnum::Brush, toolData),
+				BrushSettingsContext{ toolSettingsRegistry }
 			};
 
 			m_KeyShortcuts.insert_or_assign(toolData.KeyShortcut, ToolEnum::Brush);
@@ -46,10 +42,10 @@ namespace Stylus {
 			};
 
 			const EraserTool eraserTool = EraserTool{
-				m_ToolSettingsRegistry->CreateUiDrawer<TSE::Width, TSE::Shape, TSE::Antialiasing>(),
+				toolSettingsRegistry->CreateUiDrawer<TSE::Width, TSE::Shape, TSE::Antialiasing>(),
 				toolData,
-				m_ShaderRegistry->RegisterAndGet(ToolEnum::Eraser, toolData),
-				EraserSettingsContext{ m_ToolSettingsRegistry }
+				shaderRegistry->RegisterAndGet(ToolEnum::Eraser, toolData),
+				EraserSettingsContext{ toolSettingsRegistry }
 			};
 
 			m_KeyShortcuts.insert_or_assign(toolData.KeyShortcut, ToolEnum::Eraser);
@@ -62,9 +58,9 @@ namespace Stylus {
 			toolData.KeyShortcut = Walnut::KeyCode::I;
 
 			const ColourPickerTool colourPickerTool = ColourPickerTool{
-				m_ToolSettingsRegistry->CreateUiDrawer<TSE::PrimaryColour, TSE::SecondaryColour>(),
+				toolSettingsRegistry->CreateUiDrawer<TSE::PrimaryColour, TSE::SecondaryColour>(),
 				toolData,
-				ColourPickerSettingsContext{ m_ToolSettingsRegistry }
+				ColourPickerSettingsContext{ toolSettingsRegistry }
 			};
 
 			m_KeyShortcuts.insert_or_assign(toolData.KeyShortcut, ToolEnum::ColourPicker);

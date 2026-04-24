@@ -24,7 +24,6 @@ namespace Stylus {
         }
     }
 
-    // TODO: refactor the entire system of registering shaders and tools so they can work independently
     std::shared_ptr<ComputeShader> ShaderRegistry::RegisterAndGet(ToolEnum tool, const ToolData& toolData)
     {
         std::shared_ptr<ComputeShader> shader = m_ToolShaders[tool];

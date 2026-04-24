@@ -12,25 +12,23 @@ namespace Stylus {
 
 	void UiLayer::OnUIRender()
 	{
-		std::weak_ptr<const Tool> currentTool = m_ToolManager->GetTool();
-
 		ImGui::Begin("Tool Bar");
 
 		const auto& tools = m_ToolRegistry->GetTools();
 		for (const auto& [toolEnum, tool] : tools)
 		{
 			const ToolData& toolData = tool->GetToolData();
-			m_UiDrawer.DrawToolButton(toolEnum, toolData);
+			m_UiDrawer.DrawToolButton(toolEnum, toolData.Name);
 		}
 
 		ImGui::End();
 
 		ImGui::Begin("Tool Options");
 
-		// TODO: make m_UiDrawer do the work so it can be extended in the future
+		std::weak_ptr<const Tool> currentTool = m_ToolManager->GetTool();
 		if (auto tool = currentTool.lock())
 		{
-			tool->DrawOptionsUI();
+			m_UiDrawer.DrawToolOptions([&tool]() { tool->DrawOptionsUI(); });
 		}
 
 		ImGui::End();
