@@ -15,8 +15,8 @@ namespace Stylus {
 
 		void DrawOptionsUI() const { m_DrawUiStrategy(); }
 
-		virtual void UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const = 0;
-		virtual void UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const = 0;
+		virtual bool UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const = 0;
+		virtual bool UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const = 0;
 
 		[[nodiscard]] const ToolData GetToolData() const { return m_ToolData; }
 	private:

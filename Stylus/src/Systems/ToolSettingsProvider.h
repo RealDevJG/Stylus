@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ToolSettingsEnum.h"
+#include "../Tools/ToolSettingsEnum.h"
 #include "ToolSettingsRegistry.h"
 
 #include <memory>

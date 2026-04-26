@@ -8,7 +8,7 @@ namespace Stylus {
 	EraserTool::EraserTool(std::function<void()> drawUiStrategy, ToolData toolData, std::shared_ptr<ComputeShader> shader, EraserSettingsContext context)
 		: Tool(drawUiStrategy, toolData), m_Shader(shader), m_SettingsContext(context) {}
 
-	void EraserTool::UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
+	bool EraserTool::UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
 	{
 		if (auto shader = m_Shader.lock())
 		{
@@ -21,10 +21,13 @@ namespace Stylus {
 			};
 
 			shader->DispatchShader(&pushData);
+			return true;
 		}
+
+		return false;
 	}
 
-	void EraserTool::UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
+	bool EraserTool::UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
 	{
 		if (auto shader = m_Shader.lock())
 		{
@@ -37,7 +40,10 @@ namespace Stylus {
 			};
 
 			shader->DispatchShader(&pushData);
+			return true;
 		}
+
+		return false;
 	}
 
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Tool.h"
-#include "ToolEnum.h"
+#include "../Tools/Tool.h"
+#include "../Tools/ToolEnum.h"
 
 #include <unordered_map>
 #include <memory>

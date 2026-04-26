@@ -3,8 +3,9 @@
 #include "../Tools/Tool.h"
 #include "../Tools/ToolData.h"
 #include "../Tools/ToolEnum.h"
-#include "../Tools/ToolManager.h"
-#include "../Tools/ToolRegistry.h"
+
+#include "../Systems/ToolManager.h"
+#include "../Systems/ToolRegistry.h"
 
 #include <imgui.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ToolEnum.h"
+#include "../Tools/ToolEnum.h"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -23,8 +23,8 @@ namespace Stylus {
 
 		void Init(std::shared_ptr<ToolRegistry> toolRegistry);
 
-		void UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const;
-		void UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const;
+		[[nodiscard]] bool UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const;
+		[[nodiscard]] bool UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const;
 
 		const void SetTool(ToolEnum tool);
 		std::weak_ptr<const Tool> GetTool() const { return m_CurrentTool; }

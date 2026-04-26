@@ -1,7 +1,8 @@
-#include "Tools/ToolManager.h"
-#include "Tools/ToolRegistry.h"
-#include "Tools/ToolSettingsRegistry.h"
-#include "Vulkan/ShaderRegistry.h"
+#include "Systems/HistoryManager.h"
+#include "Systems/ToolManager.h"
+#include "Systems/ToolRegistry.h"
+#include "Systems/ToolSettingsRegistry.h"
+#include "Systems/ShaderRegistry.h"
 
 #include "Layers/ApplicationLayer.h"
 #include "Layers/CanvasLayer.h"
@@ -13,6 +14,7 @@
 #include <Walnut/UI/UI.h>
 
 #include <memory>
+#include <vector>
 
 using namespace Stylus;
 
@@ -28,6 +30,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	Walnut::Application* app = new Walnut::Application(spec);
 	app->SetApplicationIcon(std::make_shared<Walnut::Image>("assets/images/icons/app-icon.png"));
 
+	auto historyManager = std::make_shared<HistoryManager<std::vector<uint8_t>>>();
 	auto toolManager = std::make_shared<ToolManager>();
 	auto toolSettingsRegistry = std::make_shared<ToolSettingsRegistry>();
 	auto toolRegistry = std::make_shared<ToolRegistry>();
@@ -38,14 +41,15 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	shaderRegistry->Init();
 
 	auto applicationLayer = std::make_shared<ApplicationLayer>(toolManager, toolRegistry, shaderRegistry);
-	auto canvasLayer = std::make_shared<CanvasLayer>(toolManager, shaderRegistry);
+	auto canvasLayer = std::make_shared<CanvasLayer>(toolManager, shaderRegistry, historyManager);
 	auto uiLayer = std::make_shared<UiLayer>(toolManager, toolRegistry);
 
 	app->PushLayer(applicationLayer);
 	app->PushLayer(canvasLayer);
 	app->PushLayer(uiLayer);
 
-	app->SetMenubarCallback([app, applicationLayer]()
+	app->SetMenubarCallback(
+		[app, canvasLayer]()
 		{
 			if (ImGui::BeginMenu("File"))
 			{
@@ -57,16 +61,22 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("Help"))
+			if (ImGui::BeginMenu("Edit"))
 			{
-				if (ImGui::MenuItem("About"))
+				if (ImGui::MenuItem("Undo (ctrl+z)"))
 				{
-					applicationLayer->ShowAboutModal();
+					canvasLayer->UndoHistory();
+				}
+
+				if (ImGui::MenuItem("Redo (ctrl+y)"))
+				{
+					canvasLayer->RedoHistory();
 				}
 
 				ImGui::EndMenu();
 			}
-		});
+		}
+	);
 
 	return app;
 }
