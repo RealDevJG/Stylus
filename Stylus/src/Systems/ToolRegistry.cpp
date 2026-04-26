@@ -1,14 +1,14 @@
 #include "ToolRegistry.h"
 
-#include "Brush/BrushTool.h"
-#include "Brush/BrushPushData.h"
-#include "ColourPicker/ColourPickerTool.h"
-#include "Eraser/EraserTool.h"
-#include "Eraser/EraserPushData.h"
+#include "../Tools/Brush/BrushTool.h"
+#include "../Tools/Brush/BrushPushData.h"
+#include "../Tools/ColourPicker/ColourPickerTool.h"
+#include "../Tools/Eraser/EraserTool.h"
+#include "../Tools/Eraser/EraserPushData.h"
+#include "../Tools/ToolSettingsEnum.h"
 
-#include "ToolSettingsEnum.h"
 #include "ToolSettingsRegistry.h"
-#include "../Vulkan/ShaderRegistry.h"
+#include "ShaderRegistry.h"
 
 namespace Stylus {
 

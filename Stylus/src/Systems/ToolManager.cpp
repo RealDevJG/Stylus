@@ -1,7 +1,7 @@
 #include "ToolManager.h"
 
-#include "Tool.h"
-#include "../Tools/ToolRegistry.h"
+#include "../Tools/Tool.h"
+#include "../Systems/ToolRegistry.h"
 
 namespace Stylus {
 
@@ -10,20 +10,24 @@ namespace Stylus {
         m_ToolRegistry = toolRegistry;
     }
 
-    void ToolManager::UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
+    bool ToolManager::UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
     {
         if (auto tool = m_CurrentTool.lock())
         {
-            tool->UseLeftClick(mousePos, prevMousePos);
+            return tool->UseLeftClick(mousePos, prevMousePos);
         }
+
+        return false;
     }
 
-    void ToolManager::UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
+    bool ToolManager::UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
     {
         if (auto tool = m_CurrentTool.lock())
         {
-            tool->UseRightClick(mousePos, prevMousePos);
+            return tool->UseRightClick(mousePos, prevMousePos);
         }
+
+        return false;
     }
 
     const void ToolManager::SetTool(ToolEnum tool)

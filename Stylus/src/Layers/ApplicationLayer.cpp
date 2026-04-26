@@ -1,8 +1,10 @@
 #include "ApplicationLayer.h"
 
-#include "../Tools/ToolManager.h"
-#include "../Tools/ToolRegistry.h"
-#include "../Vulkan/ShaderRegistry.h"
+#include "../Systems/ToolManager.h"
+#include "../Systems/ToolRegistry.h"
+#include "../Systems/ShaderRegistry.h"
+
+#include "../Layers/CanvasLayer.h"
 
 #include <Walnut/UI/UI.h>
 
@@ -24,45 +26,10 @@ namespace Stylus {
 		dispatcher.Dispatch<Walnut::KeyPressedEvent>([this](Walnut::KeyPressedEvent& e) { return OnKeyPressed(e); });
 	}
 
-	void ApplicationLayer::UI_DrawAboutModal()
-	{
-		if (!m_AboutModalOpen)
-			return;
-
-		ImGui::OpenPopup("About");
-		m_AboutModalOpen = ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-
-		if (m_AboutModalOpen)
-		{
-			auto image = Walnut::Application::Get().GetApplicationIcon();
-			ImGui::Image(image->GetDescriptorSet(), { 48, 48 });
-
-			ImGui::SameLine();
-			Walnut::UI::ShiftCursorX(20.0f);
-
-			ImGui::BeginGroup();
-			ImGui::Text("Walnut application framework");
-			ImGui::Text("by Studio Cherno.");
-			ImGui::EndGroup();
-
-			if (Walnut::UI::ButtonCentered("Close"))
-			{
-				m_AboutModalOpen = false;
-				ImGui::CloseCurrentPopup();
-			}
-
-			ImGui::EndPopup();
-		}
-	}
-
-	void ApplicationLayer::ShowAboutModal()
-	{
-		m_AboutModalOpen = true;
-	}
-
 	bool ApplicationLayer::OnKeyPressed(Walnut::KeyPressedEvent& event)
 	{
-		ToolEnum toolEnum = m_ToolRegistry->GetToolEnum(event.GetKeyCode());
+		Walnut::KeyCode keyCode = event.GetKeyCode();
+		ToolEnum toolEnum = m_ToolRegistry->GetToolEnum(keyCode);
 
 		if (toolEnum == ToolEnum::None)
 		{

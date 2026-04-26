@@ -1,9 +1,9 @@
 #pragma once
 
-#include "ComputeShader.h"
 #include "../Tools/EffectEnum.h"
 #include "../Tools/ToolData.h"
 #include "../Tools/ToolEnum.h"
+#include "../Vulkan/ComputeShader.h"
 
 #include <Walnut/Image.h>
 #include <unordered_map>

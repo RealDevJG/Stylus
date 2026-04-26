@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Brush/BrushShape.h"
-#include "ToolSettingsEnum.h"
+#include "../Tools/Brush/BrushShape.h"
+#include "../Tools/ToolSettingsEnum.h"
 #include "../Ui/EnumSelection.h"
 #include "../Ui/DrawUiRow.h"
 

@@ -8,7 +8,7 @@ namespace Stylus {
 	BrushTool::BrushTool(std::function<void()> drawUiStrategy, ToolData toolData, std::shared_ptr<ComputeShader> shader, BrushSettingsContext context)
 		: Tool(drawUiStrategy, toolData), m_Shader(shader), m_SettingsContext(context) {}
 
-	void BrushTool::UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
+	bool BrushTool::UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
 	{
 		if (auto shader = m_Shader.lock())
 		{
@@ -22,10 +22,13 @@ namespace Stylus {
 			};
 
 			shader->DispatchShader(&pushData);
+			return true;
 		}
+
+		return false;
 	}
 
-	void BrushTool::UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
+	bool BrushTool::UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
 	{
 		if (auto shader = m_Shader.lock())
 		{
@@ -39,7 +42,10 @@ namespace Stylus {
 			};
 
 			shader->DispatchShader(&pushData);
+			return true;
 		}
+
+		return false;
 	}
 
 }
