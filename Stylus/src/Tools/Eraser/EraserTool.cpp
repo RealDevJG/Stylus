@@ -46,4 +46,12 @@ namespace Stylus {
 		return false;
 	}
 
+	void EraserTool::DrawOverlayHint(ImVec2 mousePos) const
+	{
+		float radius = m_SettingsContext.Get<TSE::Width>();
+
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		drawList->AddCircle(ImVec2(mousePos.x, mousePos.y), radius + 1, s_OverlayHintColour, 50, s_OverlayHintThickness);
+	}
+
 }

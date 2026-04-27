@@ -7,6 +7,7 @@
 #include "Layers/ApplicationLayer.h"
 #include "Layers/CanvasLayer.h"
 #include "Layers/UILayer.h"
+#include "Layers/OverlayLayer.h"
 
 #include <Walnut/Application.h>
 #include <Walnut/EntryPoint.h>
@@ -43,10 +44,12 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	auto applicationLayer = std::make_shared<ApplicationLayer>(toolManager, toolRegistry, shaderRegistry);
 	auto canvasLayer = std::make_shared<CanvasLayer>(toolManager, shaderRegistry, historyManager);
 	auto uiLayer = std::make_shared<UiLayer>(toolManager, toolRegistry);
+	auto overlayLayer = std::make_shared<OverlayLayer>(toolManager);
 
 	app->PushLayer(applicationLayer);
 	app->PushLayer(canvasLayer);
 	app->PushLayer(uiLayer);
+	app->PushLayer(overlayLayer);
 
 	app->SetMenubarCallback(
 		[app, canvasLayer]()
