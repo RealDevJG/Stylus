@@ -25,4 +25,10 @@ namespace Stylus {
         return false;
     }
 
+    void ColourPickerTool::DrawOverlayHint(ImVec2 mousePos) const
+    {
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        drawList->AddCircle(ImVec2(mousePos.x, mousePos.y), 1, s_OverlayHintColour, 50, s_OverlayHintThickness);
+    }
+
 }
