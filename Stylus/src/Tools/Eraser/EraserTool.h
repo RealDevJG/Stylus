@@ -18,6 +18,7 @@ namespace Stylus {
 
 		bool UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const override;
 		bool UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const override;
+		void DrawOverlayHint(ImVec2 mousePos) const override;
 	private:
 		std::weak_ptr<ComputeShader> m_Shader;
 		EraserSettingsContext m_SettingsContext;

@@ -3,6 +3,8 @@
 #include "BrushPushData.h"
 #include "../../Vulkan/ComputeShader.h"
 
+#include <imgui.h>
+
 namespace Stylus {
 
 	BrushTool::BrushTool(std::function<void()> drawUiStrategy, ToolData toolData, std::shared_ptr<ComputeShader> shader, BrushSettingsContext context)
@@ -46,6 +48,14 @@ namespace Stylus {
 		}
 
 		return false;
+	}
+
+	void BrushTool::DrawOverlayHint(ImVec2 mousePos) const
+	{
+		float radius = m_SettingsContext.Get<TSE::Width>();
+
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		drawList->AddCircle(ImVec2(mousePos.x, mousePos.y), radius + 1, s_OverlayHintColour, 50, s_OverlayHintThickness);
 	}
 
 }
