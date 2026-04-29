@@ -14,29 +14,30 @@
 
 namespace Stylus {
 
-	void UiLayer::OnAttach()
-	{
-		std::fstream fstream("./imgui.ini");
-
-		if (!fstream.good())
-		{
-			m_ShouldSetDefaultLayout = true;
-		}
-	}
-
 	void UiLayer::OnUIRender()
 	{
-		if (m_InitialLoad)
+		static bool s_FirstFrame = true;
+
+		if (s_FirstFrame)
 		{
-			SetWindowProperties();
-			m_InitialLoad = false;
+			s_FirstFrame = false;
+
+			if (ImGui::FindWindowSettings(ImHashStr("Canvas")) == nullptr)
+			{
+				m_ShouldSetDefaultLayout = true;
+			}
 		}
 
 		if (m_ShouldSetDefaultLayout)
 		{
 			DefaultLayout();
+			m_ShouldSetDefaultLayout = false;
 		}
 
+		ImGuiWindowClass windowClass;
+		windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
+
+		ImGui::SetNextWindowClass(&windowClass);
 		ImGui::Begin("Tool Bar");
 
 		const auto& tools = m_ToolRegistry->GetTools();
@@ -48,6 +49,7 @@ namespace Stylus {
 
 		ImGui::End();
 
+		ImGui::SetNextWindowClass(&windowClass);
 		ImGui::Begin("Tool Options");
 
 		std::weak_ptr<const Tool> currentTool = m_ToolManager->GetTool();
@@ -64,44 +66,23 @@ namespace Stylus {
 		m_ShouldSetDefaultLayout = true;
 	}
 
-	void UiLayer::SetWindowProperties()
-	{
-		ImGui::Begin("Canvas"); ImGui::End();
-		ImGui::Begin("Tool Bar"); ImGui::End();
-		ImGui::Begin("Tool Options"); ImGui::End();
-
-		auto* canvas = ImGui::FindWindowByID(ImHashStr("Canvas"));
-		auto* toolOptions = ImGui::FindWindowByID(ImHashStr("Tool Options"));
-		auto* toolBar = ImGui::FindWindowByID(ImHashStr("Tool Bar"));
-
-		canvas->WindowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
-		toolBar->WindowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
-		toolOptions->WindowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
-	}
-
 	void UiLayer::DefaultLayout()
     {
         ImGuiID dockspaceId = ImGui::GetID("MyDockspace");
 
-		if (ImGui::FindWindowByID(ImHashStr("Canvas")) != nullptr && ImGui::FindWindowByID(ImHashStr("Tool Bar")) != nullptr)
-        {
-			ImGui::DockBuilderRemoveNode(dockspaceId);
-			ImGui::DockBuilderAddNode(dockspaceId, ImGuiDockNodeFlags_DockSpace);
-			ImGui::DockBuilderSetNodeSize(dockspaceId, ImGui::GetMainViewport()->Size);
+		ImGui::DockBuilderRemoveNode(dockspaceId);
+		ImGui::DockBuilderAddNode(dockspaceId, ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderSetNodeSize(dockspaceId, ImGui::GetMainViewport()->Size);
 
-			SetWindowProperties();
+		ImGuiID dockCanvasId = dockspaceId; 
+		ImGuiID dockOptionsId = ImGui::DockBuilderSplitNode(dockCanvasId, ImGuiDir_Up, 0.07f, nullptr, &dockCanvasId);
+		ImGuiID dockToolsId = ImGui::DockBuilderSplitNode(dockCanvasId, ImGuiDir_Left, 0.11f, nullptr, &dockCanvasId);
 
-			ImGuiID dockCanvasId = dockspaceId; 
-			ImGuiID dockOptionsId = ImGui::DockBuilderSplitNode(dockCanvasId, ImGuiDir_Up, 0.07f, nullptr, &dockCanvasId);
-			ImGuiID dockToolsId = ImGui::DockBuilderSplitNode(dockCanvasId, ImGuiDir_Left, 0.11f, nullptr, &dockCanvasId);
+		ImGui::DockBuilderDockWindow("Tool Options", dockOptionsId);
+		ImGui::DockBuilderDockWindow("Tool Bar", dockToolsId);
+		ImGui::DockBuilderDockWindow("Canvas", dockCanvasId);
 
-			ImGui::DockBuilderDockWindow("Tool Options", dockOptionsId);
-			ImGui::DockBuilderDockWindow("Tool Bar", dockToolsId);
-			ImGui::DockBuilderDockWindow("Canvas", dockCanvasId);
-
-			ImGui::DockBuilderFinish(dockspaceId);
-			m_ShouldSetDefaultLayout = false;
-		}
+		ImGui::DockBuilderFinish(dockspaceId);
 	}
 
 }

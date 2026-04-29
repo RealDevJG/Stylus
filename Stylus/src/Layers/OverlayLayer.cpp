@@ -4,12 +4,18 @@
 #include "../Systems/ToolManager.h"
 
 #include <imgui.h>
+#include <imgui_internal.h>
+
 #include <memory>
 
 namespace Stylus {
 
 	void OverlayLayer::OnUIRender()
 	{
+		ImGuiWindowClass windowClass;
+		windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
+
+		ImGui::SetNextWindowClass(&windowClass);
 		ImGui::Begin("Canvas");
 
 		std::weak_ptr<const Tool> currentTool = m_ToolManager->GetTool();
