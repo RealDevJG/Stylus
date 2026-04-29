@@ -17,11 +17,16 @@ namespace Stylus {
 			: m_ToolManager(toolManager), m_ToolRegistry(toolRegistry), m_UiDrawer(toolManager) {}
 
 		virtual void OnUIRender() override;
+
+		void SetDefaultLayout();
+	private:
+		void DefaultLayout();
 	private:
 		UIDrawer m_UiDrawer;
 
 		std::shared_ptr<ToolManager> m_ToolManager;
 		std::shared_ptr<ToolRegistry> m_ToolRegistry;
+		bool m_ShouldSetDefaultLayout = false;
 	};
 
 }

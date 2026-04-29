@@ -5,6 +5,7 @@
 #include "../Systems/ShaderRegistry.h"
 
 #include <Walnut/Input/KeyCodes.h>
+#include <imgui_internal.h>
 
 namespace Stylus {
 
@@ -48,6 +49,10 @@ namespace Stylus {
 
 	void CanvasLayer::OnUIRender()
 	{
+		ImGuiWindowClass windowClass;
+		windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
+
+		ImGui::SetNextWindowClass(&windowClass);
 		ImGui::Begin("Canvas");
 
 		const uint32_t width = static_cast<uint32_t>(ImGui::GetContentRegionAvail().x);

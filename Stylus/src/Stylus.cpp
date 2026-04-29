@@ -52,7 +52,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	app->PushLayer(overlayLayer);
 
 	app->SetMenubarCallback(
-		[app, canvasLayer]()
+		[app, canvasLayer, uiLayer]()
 		{
 			if (ImGui::BeginMenu("File"))
 			{
@@ -74,6 +74,16 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 				if (ImGui::MenuItem("Redo (ctrl+y)"))
 				{
 					canvasLayer->RedoHistory();
+				}
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("View"))
+			{
+				if (ImGui::MenuItem("Default Window Layout"))
+				{
+					uiLayer->SetDefaultLayout();
 				}
 
 				ImGui::EndMenu();
