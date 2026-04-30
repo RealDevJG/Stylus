@@ -12,6 +12,7 @@ namespace Stylus {
 	class ToolManager;
 	class ToolRegistry;
 	class ShaderRegistry;
+	class ToolSettingsRegistry;
 
 	class ApplicationLayer final : public Walnut::Layer
 	{
@@ -19,8 +20,12 @@ namespace Stylus {
 		ApplicationLayer(
 			std::shared_ptr<ToolManager> toolManager,
 			std::shared_ptr<ToolRegistry> toolRegistry,
-			std::shared_ptr<ShaderRegistry> shaderRegistry
-		) : m_ToolManager(toolManager), m_ToolRegistry(toolRegistry), m_ShaderRegistry(shaderRegistry) {}
+			std::shared_ptr<ShaderRegistry> shaderRegistry,
+			std::shared_ptr<ToolSettingsRegistry> toolSettingsRegistry
+		) : m_ToolManager(toolManager),
+			m_ToolRegistry(toolRegistry),
+			m_ShaderRegistry(shaderRegistry),
+			m_ToolSettingsRegistry(toolSettingsRegistry) {}
 
 		virtual void OnAttach() override;
 		virtual void OnDetach() override;
@@ -31,6 +36,7 @@ namespace Stylus {
 		std::shared_ptr<ToolManager> m_ToolManager;
 		std::shared_ptr<ToolRegistry> m_ToolRegistry;
 		std::shared_ptr<ShaderRegistry> m_ShaderRegistry;
+		std::shared_ptr<ToolSettingsRegistry> m_ToolSettingsRegistry;
 	};
 
 }
