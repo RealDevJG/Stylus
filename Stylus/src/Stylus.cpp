@@ -41,7 +41,7 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 	toolRegistry->Init(toolSettingsRegistry, shaderRegistry);
 	shaderRegistry->Init();
 
-	auto applicationLayer = std::make_shared<ApplicationLayer>(toolManager, toolRegistry, shaderRegistry);
+	auto applicationLayer = std::make_shared<ApplicationLayer>(toolManager, toolRegistry, shaderRegistry, toolSettingsRegistry);
 	auto canvasLayer = std::make_shared<CanvasLayer>(toolManager, shaderRegistry, historyManager);
 	auto uiLayer = std::make_shared<UiLayer>(toolManager, toolRegistry);
 	auto overlayLayer = std::make_shared<OverlayLayer>(toolManager);
