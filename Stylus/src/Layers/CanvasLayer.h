@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Systems/HistoryManager.h"
+#include "../Ui/CanvasViewport.h"
 
 #include <Walnut/Application.h>
 #include <Walnut/Core/Events/InputEvents.h>
@@ -46,6 +47,7 @@ namespace Stylus {
 		bool OnKeyReleased(Walnut::KeyReleasedEvent& event);
 		bool OnMousePressed(Walnut::MousePressedEvent& event);
 		bool OnMouseReleased(Walnut::MouseReleasedEvent& event);
+		bool OnMouseScrolled(Walnut::MouseScrolledEvent& event);
 
 		void SetCanvasData(const void* data) const;
 		std::shared_ptr<Walnut::Image> GetCanvasImage() const { return m_CanvasImage; }
@@ -61,12 +63,14 @@ namespace Stylus {
 		bool m_CanvasHistoried = false;
 
 		bool m_CtrlDown = false;
+		bool m_SpaceDown = false;
 		bool m_LeftMouseDown = false;
 		bool m_RightMouseDown = false;
 
 		std::shared_ptr<ToolManager> m_ToolManager;
 		std::shared_ptr<ShaderRegistry> m_ShaderRegistry;
 		std::shared_ptr<HistoryManager<std::vector<uint8_t>>> m_HistoryManager;
+		CanvasViewport m_CanvasViewport{ ImVec2{ 1920, 1080 } };
 	};
 
 }

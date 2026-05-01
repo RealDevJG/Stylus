@@ -16,7 +16,7 @@ namespace Stylus {
 		windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
 
 		ImGui::SetNextWindowClass(&windowClass);
-		ImGui::Begin("Canvas");
+		ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 		std::weak_ptr<const Tool> currentTool = m_ToolManager->GetTool();
 
