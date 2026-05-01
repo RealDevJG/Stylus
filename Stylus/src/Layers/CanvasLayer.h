@@ -24,14 +24,6 @@ namespace Stylus {
 			std::shared_ptr<HistoryManager<std::vector<uint8_t>>> historyManager
 		) : m_ToolManager(toolManager), m_ShaderRegistry(shaderRegistry), m_HistoryManager(historyManager) {}
 
-		CanvasLayer(
-			std::shared_ptr<ToolManager> toolManager,
-			std::shared_ptr<ShaderRegistry> shaderRegistry,
-			std::shared_ptr<HistoryManager<std::vector<uint8_t>>> historyManager,
-			uint32_t canvasWidth,
-			uint32_t canvasHeight
-		) : m_ToolManager(toolManager), m_ShaderRegistry(shaderRegistry), m_HistoryManager(historyManager), m_CanvasWidth(canvasWidth), m_CanvasHeight(canvasHeight) {}
-
 		virtual void OnAttach() override;
 		virtual void OnDetach() override;
 		virtual void OnEvent(Walnut::Event& event) override;
@@ -49,18 +41,24 @@ namespace Stylus {
 		bool OnMouseReleased(Walnut::MouseReleasedEvent& event);
 		bool OnMouseScrolled(Walnut::MouseScrolledEvent& event);
 
+		void CreateCanvas(uint32_t width, uint32_t height);
+		void ResizeCanvas(uint32_t width, uint32_t height);
+		float GetCanvasScale();
+
 		void SetCanvasData(const void* data) const;
+
 		std::shared_ptr<Walnut::Image> GetCanvasImage() const { return m_CanvasImage; }
 	private:
+		void UpdateMousePos();
+	private:
+		CanvasViewport m_CanvasViewport;
 		std::shared_ptr<Walnut::Image> m_CanvasImage{};
 
 		glm::vec2 m_MousePos{};
 		glm::vec2 m_PrevMousePos{};
-		uint32_t m_CanvasWidth = 854;
-		uint32_t m_CanvasHeight = 480;
 
-		bool m_CanvasHovered = false;
-		bool m_CanvasHistoried = false;
+		bool m_ViewportHovered = false;
+		bool m_ShouldAddToHistory = false;
 
 		bool m_CtrlDown = false;
 		bool m_SpaceDown = false;
@@ -70,7 +68,6 @@ namespace Stylus {
 		std::shared_ptr<ToolManager> m_ToolManager;
 		std::shared_ptr<ShaderRegistry> m_ShaderRegistry;
 		std::shared_ptr<HistoryManager<std::vector<uint8_t>>> m_HistoryManager;
-		CanvasViewport m_CanvasViewport{ ImVec2{ 1920, 1080 } };
 	};
 
 }

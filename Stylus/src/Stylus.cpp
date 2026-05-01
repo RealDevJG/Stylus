@@ -76,6 +76,11 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 					canvasLayer->RedoHistory();
 				}
 
+				if (ImGui::MenuItem("Resize Canvas"))
+				{
+					uiLayer->OpenResizeCanvasModal();
+				}
+
 				ImGui::EndMenu();
 			}
 

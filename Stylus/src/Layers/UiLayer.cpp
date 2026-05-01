@@ -4,12 +4,15 @@
 #include "../Tools/ToolData.h"
 #include "../Tools/ToolEnum.h"
 
+#include "../Layers/CanvasLayer.h"
 #include "../Systems/ToolManager.h"
 #include "../Systems/ToolRegistry.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <Walnut/UI/UI.h>
 
+#include <charconv>
 #include <fstream>
 
 namespace Stylus {
@@ -17,6 +20,11 @@ namespace Stylus {
 	void UiLayer::OnUIRender()
 	{
 		static bool s_FirstFrame = true;
+
+		if (m_ResizeCanvasModalOpen)
+		{
+			DrawResizeCanvasModal();
+		}
 
 		if (s_FirstFrame)
 		{
@@ -66,6 +74,13 @@ namespace Stylus {
 		m_ShouldSetDefaultLayout = true;
 	}
 
+	void UiLayer::OpenResizeCanvasModal()
+	{
+		m_ResizeWidthBuffer = { "854" };
+		m_ResizeHeightBuffer = { "480" };
+		m_ResizeCanvasModalOpen = true;
+	}
+
 	void UiLayer::DefaultLayout()
     {
         ImGuiID dockspaceId = ImGui::GetID("MyDockspace");
@@ -83,6 +98,44 @@ namespace Stylus {
 		ImGui::DockBuilderDockWindow("Canvas", dockCanvasId);
 
 		ImGui::DockBuilderFinish(dockspaceId);
+	}
+
+	void UiLayer::DrawResizeCanvasModal()
+	{
+		if (!m_ResizeCanvasModalOpen)
+		{
+			return;
+		}
+
+		ImGui::OpenPopup("Resize Canvas");
+		m_ResizeCanvasModalOpen = ImGui::BeginPopupModal("Resize Canvas", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+		if (m_ResizeCanvasModalOpen)
+		{
+			ImGui::InputText("Width", m_ResizeWidthBuffer.data(), m_ResizeWidthBuffer.size(), ImGuiInputTextFlags_CharsDecimal);
+			ImGui::InputText("Height", m_ResizeHeightBuffer.data(), m_ResizeHeightBuffer.size(), ImGuiInputTextFlags_CharsDecimal);
+
+			if (Walnut::UI::ButtonCentered("Confirm"))
+			{
+				m_ResizeCanvasModalOpen = false;
+				ImGui::CloseCurrentPopup();
+
+				uint32_t width; uint32_t height;
+				std::from_chars(m_ResizeWidthBuffer.data(), m_ResizeWidthBuffer.data() + m_ResizeWidthBuffer.size(), width);
+				std::from_chars(m_ResizeHeightBuffer.data(), m_ResizeHeightBuffer.data() + m_ResizeHeightBuffer.size(), height);
+
+				CanvasLayer* canvasLayer = Walnut::Application::Get().GetLayer<CanvasLayer>();
+				canvasLayer->ResizeCanvas(width, height);
+			}
+
+			if (Walnut::UI::ButtonCentered("Cancel"))
+			{
+				m_ResizeCanvasModalOpen = false;
+				ImGui::CloseCurrentPopup();
+			}
+		}
+
+		ImGui::EndPopup();
 	}
 
 }

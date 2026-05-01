@@ -1,6 +1,7 @@
 #include "OverlayLayer.h"
 
 #include "../Tools/Tool.h"
+#include "../Layers/CanvasLayer.h"
 #include "../Systems/ToolManager.h"
 
 #include <imgui.h>
@@ -22,8 +23,11 @@ namespace Stylus {
 
 		if (auto tool = currentTool.lock())
 		{
+			CanvasLayer* canvasLayer = Walnut::Application::Get().GetLayer<CanvasLayer>();
+			float scale = canvasLayer->GetCanvasScale();
+
 			ImVec2 mousePos = ImGui::GetMousePos();
-			tool->DrawOverlayHint(mousePos);
+			tool->DrawOverlayHint(mousePos, scale);
 		}
 
 		ImGui::End();

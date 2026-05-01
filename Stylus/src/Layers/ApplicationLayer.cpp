@@ -36,14 +36,14 @@ namespace Stylus {
 		if (keyCode == Walnut::KeyCode::LeftBracket)
 		{
 			auto& value = m_ToolSettingsRegistry->GetValue<TSE::Width>();
-			value = glm::floor(glm::clamp(value - 1, 0.0f, 256.0f));
+			value = glm::floor(glm::clamp(value - 1, 1.0f, 256.0f));
 
 			return true;
 		}
 		else if (keyCode == Walnut::KeyCode::RightBracket)
 		{
 			auto& value = m_ToolSettingsRegistry->GetValue<TSE::Width>();
-			value = glm::floor(glm::clamp(value + 1, 0.0f, 256.0f));
+			value = glm::floor(glm::clamp(value + 1, 1.0f, 256.0f));
 
 			return true;
 		}

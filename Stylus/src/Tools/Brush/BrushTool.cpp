@@ -50,9 +50,9 @@ namespace Stylus {
 		return false;
 	}
 
-	void BrushTool::DrawOverlayHint(ImVec2 mousePos) const
+	void BrushTool::DrawOverlayHint(ImVec2 mousePos, float scale) const
 	{
-		float radius = m_SettingsContext.Get<TSE::Width>();
+		float radius = m_SettingsContext.Get<TSE::Width>() * scale;
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		drawList->AddCircle(ImVec2(mousePos.x, mousePos.y), radius + 1, s_OverlayHintColour, 50, s_OverlayHintThickness);
