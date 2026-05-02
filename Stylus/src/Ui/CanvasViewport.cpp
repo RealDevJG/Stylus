@@ -1,9 +1,33 @@
 #include "CanvasViewport.h"
 
+#include <Walnut/Application.h>
+
+#include <backends/imgui_impl_vulkan.h>
 #include <glm/glm.hpp>
 #include <imgui_internal.h>
 
 namespace Stylus {
+
+	CanvasViewport::~CanvasViewport()
+	{
+		vkDestroySampler(Walnut::Application::GetDevice(), m_NearestSampler, nullptr);
+	}
+
+	void CanvasViewport::Setup(std::shared_ptr<Walnut::Image> canvasImage)
+	{
+		VkSamplerCreateInfo samplerInfo = {};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = VK_FILTER_NEAREST;
+		samplerInfo.minFilter = VK_FILTER_NEAREST;
+		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.maxAnisotropy = 1.0f;
+		vkCreateSampler(Walnut::Application::GetDevice(), &samplerInfo, nullptr, &m_NearestSampler);
+
+		m_ForcedDescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_NearestSampler, canvasImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	}
 
 	void CanvasViewport::Render(std::shared_ptr<Walnut::Image> canvasImage)
 	{
@@ -24,7 +48,7 @@ namespace Stylus {
 
 		m_CanvasTopLeft = {
 			bgTopLeft.x + m_Pan.x,
-			bgTopLeft.y + m_Pan.y,
+			bgTopLeft.y + m_Pan.y
 		};
 
 		ImVec2 canvasBottomRight = {
@@ -34,7 +58,7 @@ namespace Stylus {
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		drawList->AddRectFilled(bgTopLeft, bgBottomRight, IM_COL32(30, 30, 30, 255));
-		drawList->AddImage(canvasImage->GetDescriptorSet(), m_CanvasTopLeft, canvasBottomRight);
+		drawList->AddImage(m_ForcedDescriptorSet, m_CanvasTopLeft, canvasBottomRight);
 
 		m_MousePos = ImGui::GetMousePos();
 

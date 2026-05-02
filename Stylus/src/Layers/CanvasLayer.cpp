@@ -217,6 +217,7 @@ namespace Stylus {
 		fillCanvasShader->DispatchShader(&pushData);
 
 		m_CanvasViewport.ResizeCanvas(width, height);
+		m_CanvasViewport.Setup(m_CanvasImage);
 		SaveHistory();
 	}
 
