@@ -10,11 +10,11 @@
 [submodule "vendor/yaml-cpp"]
 	path = vendor/yaml-cpp
 	url = https://github.com/TheCherno/yaml-cpp
-[submodule "vendor/walnut"]
-	path = vendor/walnut
-	url = https://github.com/RealDevJG/Walnut.git
-	branch = forked-dev
 [submodule "vendor/imgui"]
 	path = vendor/imgui
 	url = https://github.com/RealDevJG/imgui.git
 	branch = docking
+[submodule "vendor/walnut"]
+	path = vendor/walnut
+	url = https://github.com/RealDevJG/Walnut.git
+	branch = forked-dev

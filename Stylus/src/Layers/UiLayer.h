@@ -33,6 +33,7 @@ namespace Stylus {
 		std::shared_ptr<ToolRegistry> m_ToolRegistry;
 		bool m_ShouldSetDefaultLayout = false;
 		bool m_ResizeCanvasModalOpen = false;
+		bool m_ShouldCentreResizeModal = false;
 	};
 
 }

@@ -16,8 +16,9 @@ namespace Stylus {
 		~CanvasViewport();
 
 		void Setup(std::shared_ptr<Walnut::Image> canvasImage);
-		void Render(std::shared_ptr<Walnut::Image> canvasImage);
+		void Cleanup();
 
+		void Render(std::shared_ptr<Walnut::Image> canvasImage);
 		void ResizeCanvas(uint32_t width, uint32_t height);
 		void SetNeedsCentering(bool centre = true);
 
@@ -40,8 +41,8 @@ namespace Stylus {
 
 		bool m_NeedsCentering = true;
 
-		VkSampler m_NearestSampler;
-		VkDescriptorSet m_ForcedDescriptorSet;
+		VkSampler m_NearestSampler{};
+		VkDescriptorSet m_ForcedDescriptorSet{};
 	};
 
 }

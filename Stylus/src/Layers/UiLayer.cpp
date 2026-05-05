@@ -79,6 +79,7 @@ namespace Stylus {
 		m_ResizeWidthBuffer = { "854" };
 		m_ResizeHeightBuffer = { "480" };
 		m_ResizeCanvasModalOpen = true;
+		m_ShouldCentreResizeModal = true;
 	}
 
 	void UiLayer::DefaultLayout()
@@ -108,6 +109,15 @@ namespace Stylus {
 		}
 
 		ImGui::OpenPopup("Resize Canvas");
+
+		if (m_ShouldCentreResizeModal)
+		{
+			ImVec2 centre = ImGui::GetMainViewport()->GetCenter();
+			ImGui::SetNextWindowPos(centre, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+			m_ShouldCentreResizeModal = false;
+		}
+
 		m_ResizeCanvasModalOpen = ImGui::BeginPopupModal("Resize Canvas", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
 		if (m_ResizeCanvasModalOpen)

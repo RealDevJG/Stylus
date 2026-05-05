@@ -15,7 +15,6 @@ namespace Stylus {
 	{
 		uint32_t width = 854;
 		uint32_t height = 480;
-
 		CreateCanvas(width, height);
 	}
 
@@ -218,6 +217,7 @@ namespace Stylus {
 
 		m_CanvasViewport.ResizeCanvas(width, height);
 		m_CanvasViewport.Setup(m_CanvasImage);
+
 		SaveHistory();
 	}
 

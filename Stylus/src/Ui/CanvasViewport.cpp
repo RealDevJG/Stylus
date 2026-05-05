@@ -10,11 +10,13 @@ namespace Stylus {
 
 	CanvasViewport::~CanvasViewport()
 	{
-		vkDestroySampler(Walnut::Application::GetDevice(), m_NearestSampler, nullptr);
+		Cleanup();
 	}
 
 	void CanvasViewport::Setup(std::shared_ptr<Walnut::Image> canvasImage)
 	{
+		Cleanup();
+
 		VkSamplerCreateInfo samplerInfo = {};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.magFilter = VK_FILTER_NEAREST;
@@ -27,6 +29,12 @@ namespace Stylus {
 		vkCreateSampler(Walnut::Application::GetDevice(), &samplerInfo, nullptr, &m_NearestSampler);
 
 		m_ForcedDescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_NearestSampler, canvasImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		m_Scale = 1.0f;
+	}
+
+	void CanvasViewport::Cleanup()
+	{
+		vkDestroySampler(Walnut::Application::GetDevice(), m_NearestSampler, nullptr);
 	}
 
 	void CanvasViewport::Render(std::shared_ptr<Walnut::Image> canvasImage)
@@ -69,7 +77,6 @@ namespace Stylus {
 	{
 		m_CanvasSize.x = static_cast<float>(width);
 		m_CanvasSize.y = static_cast<float>(height);
-
 		SetNeedsCentering();
 	}
 
