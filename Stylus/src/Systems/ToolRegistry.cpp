@@ -55,7 +55,7 @@ namespace Stylus {
 		{
 			ToolData toolData{};
 			toolData.Name = "Colour Picker";
-			toolData.KeyShortcut = Walnut::KeyCode::I;
+			toolData.KeyShortcut = Walnut::KeyCode::K;
 
 			const ColourPickerTool colourPickerTool = ColourPickerTool{
 				toolSettingsRegistry->CreateUiDrawer<TSE::PrimaryColour, TSE::SecondaryColour>(),

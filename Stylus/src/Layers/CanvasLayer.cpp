@@ -5,6 +5,7 @@
 #include "../Systems/ShaderRegistry.h"
 
 #include <Walnut/Input/KeyCodes.h>
+#include <imgui_internal.h>
 
 namespace Stylus {
 
@@ -12,24 +13,9 @@ namespace Stylus {
 
 	void CanvasLayer::OnAttach()
 	{
-		// TODO: this is temporary, remove after fixed canvas sizes have been added (needed rn bc OnAttach fires 3 times)
-		// The reason it fires 3 times is because the UiLayer's ImGui panels for the toolbar and tool settings get added later, so canvas needs to resize
-		static uint8_t s_Ticked = 0;
-
-		m_CanvasImage = std::make_shared<Walnut::Image>(m_CanvasWidth, m_CanvasHeight, Walnut::ImageFormat::RGBA);
-		m_ShaderRegistry->SetCanvasImage(m_CanvasImage);
-
-		FillCanvasPushData pushData{ glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) };
-
-		auto fillCanvasShader = m_ShaderRegistry->Get(EffectEnum::FillCanvas);
-		fillCanvasShader->DispatchShader(&pushData);
-
-		// TODO: this is temporary, remove after fixed canvas sizes have been added (needed rn bc OnAttach fires 3 times)
-		// The reason it fires 3 times is because the UiLayer's ImGui panels for the toolbar and tool settings get added later, so canvas needs to resize
-		if (++s_Ticked >= 3)
-		{
-			SaveHistory();
-		}
+		uint32_t width = 854;
+		uint32_t height = 480;
+		CreateCanvas(width, height);
 	}
 
 	void CanvasLayer::OnDetach()
@@ -44,50 +30,51 @@ namespace Stylus {
 		dispatcher.Dispatch<Walnut::KeyReleasedEvent>([this](Walnut::KeyReleasedEvent& e) { return OnKeyReleased(e); });
 		dispatcher.Dispatch<Walnut::MousePressedEvent>([this](Walnut::MousePressedEvent& e) { return OnMousePressed(e); });
 		dispatcher.Dispatch<Walnut::MouseReleasedEvent>([this](Walnut::MouseReleasedEvent& e) { return OnMouseReleased(e); });
+		dispatcher.Dispatch<Walnut::MouseScrolledEvent>([this](Walnut::MouseScrolledEvent& e) { return OnMouseScrolled(e); });
 	}
 
 	void CanvasLayer::OnUIRender()
 	{
-		ImGui::Begin("Canvas");
+		ImGuiWindowClass windowClass;
+		windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
 
-		const uint32_t width = static_cast<uint32_t>(ImGui::GetContentRegionAvail().x);
-		const uint32_t height = static_cast<uint32_t>(ImGui::GetContentRegionAvail().y);
+		ImGui::SetNextWindowClass(&windowClass);
+		ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-		if (!m_CanvasImage || m_CanvasImage->GetWidth() != width || m_CanvasImage->GetHeight() != height)
-		{
-			m_CanvasWidth = width;
-			m_CanvasHeight = height;
-
-			OnAttach();
-		}
-
-		ImGui::Image(m_CanvasImage->GetDescriptorSet(), { static_cast<float>(m_CanvasWidth), static_cast<float>(m_CanvasHeight) });
-		m_CanvasHovered = ImGui::IsItemHovered();
-
-		ImVec2 minImageBounds = ImGui::GetItemRectMin();
-		ImVec2 maxImageBounds = ImGui::GetItemRectMax();
-		ImVec2 imGuiMousePos = ImGui::GetMousePos();
-
-		float x = imGuiMousePos.x - minImageBounds.x;
-		float y = imGuiMousePos.y - minImageBounds.y;
-
-		m_MousePos = glm::vec2(x, y);
+		m_ViewportHovered = ImGui::IsWindowHovered();
+		m_CanvasViewport.Render(m_CanvasImage);
+		UpdateMousePos();
 
 		ImGui::End();
 	}
 
 	void CanvasLayer::OnUpdate(float ts)
 	{
-		if (m_LeftMouseDown)
+		if (m_SpaceDown)
 		{
-			m_CanvasHistoried = m_ToolManager->UseLeftClick(m_MousePos, m_PrevMousePos);
+			if (m_LeftMouseDown || m_RightMouseDown)
+			{
+				glm::vec2 mouseDelta = (m_MousePos - m_PrevMousePos) * ts;
+				m_CanvasViewport.Pan(mouseDelta.x, mouseDelta.y);
+			}
 		}
-		else if (m_RightMouseDown)
+		else if (m_ViewportHovered)
 		{
-			m_CanvasHistoried = m_ToolManager->UseRightClick(m_MousePos, m_PrevMousePos);
-		}
+			if (m_LeftMouseDown)
+			{
+				glm::vec2 mousePos = m_CanvasViewport.ToCanvasSpace(m_MousePos);
+				glm::vec2 prevMousePos = m_CanvasViewport.ToCanvasSpace(m_PrevMousePos);
 
-		m_PrevMousePos = m_MousePos;
+				m_ShouldAddToHistory = m_ToolManager->UseLeftClick(mousePos, prevMousePos);
+			}
+			else if (m_RightMouseDown)
+			{
+				glm::vec2 mousePos = m_CanvasViewport.ToCanvasSpace(m_MousePos);
+				glm::vec2 prevMousePos = m_CanvasViewport.ToCanvasSpace(m_PrevMousePos);
+
+				m_ShouldAddToHistory = m_ToolManager->UseRightClick(mousePos, prevMousePos);
+			}
+		}
 	}
 
 	void CanvasLayer::ClearHistory()
@@ -128,6 +115,11 @@ namespace Stylus {
 			m_CtrlDown = true;
 		}
 
+		if (keyCode == Walnut::KeyCode::Space)
+		{
+			m_SpaceDown = true;
+		}
+
 		if (m_CtrlDown)
 		{
 			if (keyCode == Walnut::KeyCode::Z)
@@ -154,16 +146,16 @@ namespace Stylus {
 			m_CtrlDown = false;
 		}
 
+		if (keyCode == Walnut::KeyCode::Space)
+		{
+			m_SpaceDown = false;
+		}
+
 		return false;
 	}
 
 	bool CanvasLayer::OnMousePressed(Walnut::MousePressedEvent& event)
 	{
-		if (!m_CanvasHovered)
-		{
-			return false;
-		}
-
 		if (event.GetMouseButton() == Walnut::MouseButton::Left)
 		{
 			m_LeftMouseDown = true;
@@ -181,12 +173,12 @@ namespace Stylus {
 	{
 		bool handled = false;
 
-		if (m_CanvasHistoried)
+		if (m_ShouldAddToHistory)
 		{
 			SaveHistory();
 			handled = true;
 
-			m_CanvasHistoried = false;
+			m_ShouldAddToHistory = false;
 		}
 
 		if (event.GetMouseButton() == Walnut::MouseButton::Left)
@@ -202,9 +194,59 @@ namespace Stylus {
 		return handled;
 	}
 
+	bool CanvasLayer::OnMouseScrolled(Walnut::MouseScrolledEvent& event)
+	{
+		if (m_CtrlDown)
+		{
+			float dz = event.GetScrollOffset().y;
+			m_CanvasViewport.Zoom(dz);
+		}
+
+		return false;
+	}
+
+	void CanvasLayer::CreateCanvas(uint32_t width, uint32_t height)
+	{
+		m_CanvasImage = std::make_shared<Walnut::Image>(width, height, Walnut::ImageFormat::RGBA);
+		m_ShaderRegistry->SetCanvasImage(m_CanvasImage);
+
+		FillCanvasPushData pushData{ glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) };
+
+		auto fillCanvasShader = m_ShaderRegistry->Get(EffectEnum::FillCanvas);
+		fillCanvasShader->DispatchShader(&pushData);
+
+		m_CanvasViewport.ResizeCanvas(width, height);
+		m_CanvasViewport.Setup(m_CanvasImage);
+
+		SaveHistory();
+	}
+
+	void CanvasLayer::ResizeCanvas(uint32_t width, uint32_t height)
+	{
+		CreateCanvas(width, height);
+	}
+
+	float CanvasLayer::GetCanvasScale()
+	{
+		return m_CanvasViewport.GetCanvasScale();
+	}
+
 	void CanvasLayer::SetCanvasData(const void* data) const
 	{
 		m_CanvasImage->SetData(data);
+	}
+
+	void CanvasLayer::UpdateMousePos()
+	{
+		ImVec2 minImageBounds = ImGui::GetItemRectMin();
+		ImVec2 maxImageBounds = ImGui::GetItemRectMax();
+		ImVec2 imGuiMousePos = ImGui::GetMousePos();
+
+		float x = imGuiMousePos.x - minImageBounds.x;
+		float y = imGuiMousePos.y - minImageBounds.y;
+
+		m_PrevMousePos = m_MousePos;
+		m_MousePos = glm::vec2(x, y);
 	}
 
 }

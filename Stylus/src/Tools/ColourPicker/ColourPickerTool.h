@@ -15,6 +15,7 @@ namespace Stylus {
 
 		bool UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const override;
 		bool UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const override;
+		void DrawOverlayHint(ImVec2 mousePos, float scale) const override;
 	private:
 		ColourPickerSettingsContext m_SettingsContext;
 	};
