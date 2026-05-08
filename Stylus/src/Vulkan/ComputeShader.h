@@ -2,23 +2,21 @@
 
 #include <vulkan/vulkan.h>
 #include <Walnut/Image.h>
-
 #include <filesystem>
-#include <memory>
 
 namespace Stylus {
 
 	class ComputeShader
 	{
 	public:
-		ComputeShader(const std::filesystem::path& shaderPath, uint32_t pushSize);
+		explicit ComputeShader(const std::filesystem::path& shaderPath, uint32_t pushSize);
 		~ComputeShader();
 
-		void SetImage(std::shared_ptr<Walnut::Image> canvasImage);
-		void DispatchShader(const void* pushData);
+		void SetImage(Walnut::Image* canvasImage);
+		void DispatchShader(const void* pushData) const;
 	private:
 		void CreateComputePipeline(const std::filesystem::path& shaderPath);
-		VkShaderModule CreateShaderModule(const std::filesystem::path& shaderPath);
+		[[nodiscard]] VkShaderModule CreateShaderModule(const std::filesystem::path& shaderPath) const;
 
 		void CreateLayouts();
 		void CreatePools();
@@ -41,7 +39,7 @@ namespace Stylus {
 		VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;
 
 		uint32_t m_QueueFamilyIndex = (uint32_t)-1;
-		std::shared_ptr<Walnut::Image> m_CanvasImage;
+		Walnut::Image* m_CanvasImage;
 
 		uint32_t m_PushSize = 0;
 	};

@@ -5,12 +5,12 @@
 
 namespace Stylus {
 
-	EraserTool::EraserTool(std::function<void()> drawUiStrategy, ToolData toolData, std::shared_ptr<ComputeShader> shader, EraserSettingsContext context)
+	EraserTool::EraserTool(std::function<void()> drawUiStrategy, const ToolData& toolData, const ComputeShader* shader, EraserSettingsContext context)
 		: Tool(drawUiStrategy, toolData), m_Shader(shader), m_SettingsContext(context) {}
 
-	bool EraserTool::UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
+	bool EraserTool::UseLeftClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
 	{
-		if (auto shader = m_Shader.lock())
+		if (m_Shader)
 		{
 			EraserPushData pushData{
 				mousePos,
@@ -20,16 +20,16 @@ namespace Stylus {
 				m_SettingsContext.Get<TSE::Antialiasing>() ? 1u : 0u
 			};
 
-			shader->DispatchShader(&pushData);
+			m_Shader->DispatchShader(&pushData);
 			return true;
 		}
 
 		return false;
 	}
 
-	bool EraserTool::UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
+	bool EraserTool::UseRightClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
 	{
-		if (auto shader = m_Shader.lock())
+		if (m_Shader)
 		{
 			EraserPushData pushData{
 				mousePos,
@@ -39,16 +39,16 @@ namespace Stylus {
 				m_SettingsContext.Get<TSE::Antialiasing>() ? 1u : 0u
 			};
 
-			shader->DispatchShader(&pushData);
+			m_Shader->DispatchShader(&pushData);
 			return true;
 		}
 
 		return false;
 	}
 
-	void EraserTool::DrawOverlayHint(ImVec2 mousePos, float scale) const
+	void EraserTool::DrawOverlayHint(const ImVec2 mousePos, float scale) const
 	{
-		float radius = m_SettingsContext.Get<TSE::Width>() * scale;
+		float radius = m_SettingsContext.Get<TSE::Width>() * scale * 0.5f;
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		drawList->AddCircle(ImVec2(mousePos.x, mousePos.y), radius + 1, s_OverlayHintColour, 50, s_OverlayHintThickness);

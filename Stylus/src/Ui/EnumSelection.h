@@ -1,44 +1,53 @@
 #pragma once
 
-#include <array>
+#include "../Concepts/EnumType.h"
+#include "../Concepts/TupleLikeType.h"
+
+#include <span>
+#include <ranges>
 #include <imgui.h>
 
-template<typename Enum, size_t N>
-bool EnumSelection(const char* label, Enum& currentValue, const std::array<std::pair<Enum, const char*>, N>& items)
-{
-    const char* preview = nullptr;
+namespace Stylus::UI {
 
-    for (const auto& [value, name] : items)
+    template<Concepts::EnumType Enum, std::ranges::input_range Range>
+        requires Concepts::TupleLikeType<std::ranges::range_reference_t<Range>>
+    constexpr bool EnumSelection(const char* label, Enum& currentValue, Range&& items)
     {
-        if (value == currentValue)
-        {
-            preview = name;
-            break;
-        }
-    }
+        const char* preview = "";
 
-    bool changed = false;
-
-    if (ImGui::BeginCombo(label, preview))
-    {
         for (const auto& [value, name] : items)
         {
-            bool isSelected = (value == currentValue);
-
-            if (ImGui::Selectable(name, isSelected))
+            if (value == currentValue)
             {
-                currentValue = value;
-                changed = true;
-            }
-
-            if (isSelected)
-            {
-                ImGui::SetItemDefaultFocus();
+                preview = name;
+                break;
             }
         }
 
-        ImGui::EndCombo();
+        bool changed = false;
+
+        if (ImGui::BeginCombo(label, preview))
+        {
+            for (const auto& [value, name] : items)
+            {
+                bool isSelected = (value == currentValue);
+
+                if (ImGui::Selectable(name, isSelected))
+                {
+                    currentValue = value;
+                    changed = true;
+                }
+
+                if (isSelected)
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        return changed;
     }
 
-    return changed;
 }

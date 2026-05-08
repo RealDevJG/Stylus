@@ -11,7 +11,7 @@ namespace Stylus {
 	{
 		std::string Name;
 		std::filesystem::path ShaderPath{};
-		size_t PushConstantStructSize{};
+		uint32_t PushConstantStructSize{};
 		Walnut::KeyCode KeyShortcut = Walnut::KeyCode::None;
 	};
 

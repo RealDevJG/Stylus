@@ -5,53 +5,49 @@
 
 namespace Stylus {
 
-    void ShaderRegistry::Init()
+    ShaderRegistry::ShaderRegistry()
     {
-        // TODO: register effects externally like tools
-        m_EffectShaders.insert_or_assign(EffectEnum::FillCanvas, std::make_shared<ComputeShader>("assets/shaders/fill-canvas.spv", sizeof(FillCanvasPushData)));
+        // TODO: when there are more effects, register them externally like tools
+        m_EffectShaders.try_emplace(
+            EffectEnum::FillCanvas,
+            std::make_unique<ComputeShader>(
+                "assets/shaders/fill-canvas.spv",
+                static_cast<uint32_t>(sizeof(FillCanvasPushData))
+            )
+        );
     }
 
-    void ShaderRegistry::SetCanvasImage(std::shared_ptr<Walnut::Image> canvasImage)
+    void ShaderRegistry::SetCanvasImage(Walnut::Image* canvasImage) const
     {
-        for (auto& [toolEnum, shader] : m_ToolShaders)
+        for (const auto& [toolEnum, shader] : m_ToolShaders)
         {
             shader->SetImage(canvasImage);
         }
 
-        for (auto& [toolEnum, shader] : m_EffectShaders)
+        for (const auto& [toolEnum, shader] : m_EffectShaders)
         {
             shader->SetImage(canvasImage);
         }
     }
 
-    std::shared_ptr<ComputeShader> ShaderRegistry::RegisterAndGet(ToolEnum tool, const ToolData& toolData)
+    const ComputeShader* ShaderRegistry::RegisterAndGet(const ToolEnum toolEnum, const ToolData& toolData)
     {
-        std::shared_ptr<ComputeShader> shader = m_ToolShaders[tool];
-
-        if (shader)
-        {
-            return shader;
-        }
-
-        m_ToolShaders.insert_or_assign(tool, std::make_shared<ComputeShader>(toolData.ShaderPath, toolData.PushConstantStructSize));
-
-        return Get(tool);
+        auto [it, emplaced] = m_ToolShaders.try_emplace(toolEnum, std::make_unique<ComputeShader>(toolData.ShaderPath, toolData.PushConstantStructSize));
+        return it->second.get();
     }
 
-    std::shared_ptr<ComputeShader> ShaderRegistry::Get(ToolEnum tool) const
+    const ComputeShader* ShaderRegistry::Get(const ToolEnum toolEnum) const
     {
-        return m_ToolShaders.at(tool);
+        auto it = m_ToolShaders.find(toolEnum);
+        assert(it != m_ToolShaders.end() && "Couldn't find tool shader in ShaderRegistry::Get");
+        return it->second.get();
     }
 
-    std::shared_ptr<ComputeShader> ShaderRegistry::Get(EffectEnum effect) const
+    const ComputeShader* ShaderRegistry::Get(const EffectEnum effectEnum) const
     {
-        return m_EffectShaders.at(effect);
-    }
-
-    void ShaderRegistry::Cleanup()
-    {
-        m_ToolShaders.clear();
-        m_EffectShaders.clear();
+        auto it = m_EffectShaders.find(effectEnum);
+        assert(it != m_EffectShaders.end() && "Couldn't find effect shader in ShaderRegistry::Get");
+        return it->second.get();
     }
 
 }

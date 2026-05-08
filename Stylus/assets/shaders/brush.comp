@@ -10,39 +10,42 @@ layout(push_constant) uniform PushData {
 	vec2 MousePos;
 	vec2 PrevMousePos;
     int Shape;
-	float Radius;
+	float Width;
     bool Antialiased;
 } PushConstants;
 
+// TODO: Fix antialiasing so it doesn't accumulate colour over multiple dispatches
 void main()
 {
     ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
-    vec2 pixelPos = vec2(pixelCoord);
+    vec2 pixelPos = vec2(pixelCoord) + vec2(0.5);
+    float radius = PushConstants.Width * 0.5;
 
     vec2 strokeDelta = PushConstants.MousePos - PushConstants.PrevMousePos;
     float strokeLength = length(strokeDelta);
 
-    float spacing = max(PushConstants.Radius * 0.5, 1.0);
+    float spacing = max(radius * 0.5, 1.0);
     int stepCount = max(1, int(ceil(strokeLength / spacing)));
 
     vec4 resultColour = imageLoad(canvasImage, pixelCoord);
-    float aaWidth = 2.0;
+    float aaWidth = 1.0;
 
     for (int i = 0; i <= stepCount; i++)
     {
         float t = float(i) / float(stepCount);
         vec2 samplePos = mix(PushConstants.PrevMousePos, PushConstants.MousePos, t);
+        samplePos = floor(samplePos) + vec2(0.5);
 
         vec2 localPos = pixelPos - samplePos;
 
         float signedDistance = 1e10;
-        if (PushConstants.Shape == 0) signedDistance = sdCircle(localPos, PushConstants.Radius);
-        else if (PushConstants.Shape == 1) signedDistance = sdSquare(localPos, PushConstants.Radius);
-        else if (PushConstants.Shape == 2) signedDistance = sdTriangle(localPos, PushConstants.Radius);
+        if (PushConstants.Shape == 0) signedDistance = sdCircle(localPos, radius);
+        else if (PushConstants.Shape == 1) signedDistance = sdSquare(localPos, radius);
+        else if (PushConstants.Shape == 2) signedDistance = sdTriangle(localPos, radius);
 
         if (PushConstants.Antialiased)
         {
-            float alpha = 1.0 - smoothstep(-aaWidth, aaWidth, signedDistance);
+            float alpha = 1.0 - smoothstep(0.0, aaWidth, signedDistance);
             resultColour = mix(resultColour, PushConstants.Colour, alpha);
         }
         else

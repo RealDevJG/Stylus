@@ -3,34 +3,32 @@
 #include "../Tools/ToolSettingsEnum.h"
 #include "ToolSettingsRegistry.h"
 
-#include <memory>
-
 namespace Stylus {
 
 	template<ToolSettingsEnum... AllowedSettings>
 	class ToolSettingsProvider
 	{
 	public:
-		ToolSettingsProvider(std::shared_ptr<ToolSettingsRegistry> toolSettingsRegistry)
+		ToolSettingsProvider(ToolSettingsRegistry* toolSettingsRegistry)
 			: m_ToolSettingsRegistry(toolSettingsRegistry) {}
 
 		template<ToolSettingsEnum Setting>
-		const auto& Get() const
+		[[nodiscard]] constexpr const auto& Get() const
 		{
 			static_assert(((Setting == AllowedSettings) || ...), "Get: Tool is trying to access a setting it isn't configured to. It needs adding to ToolRegistry.cpp");
 			return m_ToolSettingsRegistry->GetValue<Setting>();
 		}
 
 		template<ToolSettingsEnum Setting>
-		void Set(auto newVal) const
+		constexpr void Set(auto newValue) const
 		{
 			static_assert(((Setting == AllowedSettings) || ...), "Get: Tool is trying to access a setting it isn't configured to. It needs adding to ToolRegistry.cpp");
 
-			auto& val = m_ToolSettingsRegistry->GetValue<Setting>();
-			val = newVal;
+			auto& value = m_ToolSettingsRegistry->GetValue<Setting>();
+			value = newValue;
 		}
 	private:
-		std::shared_ptr<ToolSettingsRegistry> m_ToolSettingsRegistry;
+		ToolSettingsRegistry* m_ToolSettingsRegistry;
 	};
 
 }

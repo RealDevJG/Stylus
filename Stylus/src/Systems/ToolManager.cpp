@@ -5,26 +5,27 @@
 
 namespace Stylus {
 
-    void ToolManager::Init(std::shared_ptr<ToolRegistry> toolRegistry)
+    ToolManager::ToolManager(std::shared_ptr<ToolRegistry> toolRegistry)
     {
         m_ToolRegistry = toolRegistry;
+        SetTool(ToolEnum::Brush);
     }
 
-    bool ToolManager::UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
+    bool ToolManager::UseLeftClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
     {
-        if (auto tool = m_CurrentTool.lock())
+        if (m_CurrentTool)
         {
-            return tool->UseLeftClick(mousePos, prevMousePos);
+            return m_CurrentTool->UseLeftClick(mousePos, prevMousePos);
         }
 
         return false;
     }
 
-    bool ToolManager::UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const
+    bool ToolManager::UseRightClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
     {
-        if (auto tool = m_CurrentTool.lock())
+        if (m_CurrentTool)
         {
-            return tool->UseRightClick(mousePos, prevMousePos);
+            return m_CurrentTool->UseRightClick(mousePos, prevMousePos);
         }
 
         return false;

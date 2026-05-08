@@ -4,8 +4,6 @@
 #include "../ToolSettingsEnum.h"
 #include "../../Systems/ToolSettingsProvider.h"
 
-#include <memory>
-
 namespace Stylus {
 
 	class ComputeShader;
@@ -14,13 +12,13 @@ namespace Stylus {
 	class BrushTool final : public Tool
 	{
 	public:
-		BrushTool(std::function<void()> drawUiStrategy, ToolData toolData, std::shared_ptr<ComputeShader> shader, BrushSettingsContext context);
+		BrushTool(std::function<void()> drawUiStrategy, const ToolData& toolData, const ComputeShader* shader, BrushSettingsContext context);
 
-		bool UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const override;
-		bool UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const override;
-		void DrawOverlayHint(ImVec2 mousePos, float scale) const override;
+		bool UseLeftClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const override;
+		bool UseRightClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const override;
+		void DrawOverlayHint(const ImVec2 mousePos, float scale) const override;
 	private:
-		std::weak_ptr<ComputeShader> m_Shader;
+		const ComputeShader* m_Shader;
 		BrushSettingsContext m_SettingsContext;
 	};
 

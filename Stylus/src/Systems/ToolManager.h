@@ -13,7 +13,7 @@ namespace Stylus {
 	class ToolManager
 	{
 	public:
-		ToolManager() = default;
+		ToolManager(std::shared_ptr<ToolRegistry> toolRegistry);
 		~ToolManager() = default;
 
 		ToolManager(const ToolManager&) = delete;
@@ -21,15 +21,13 @@ namespace Stylus {
 		ToolManager(ToolManager&&) = delete;
 		ToolManager& operator=(ToolManager&&) = delete;
 
-		void Init(std::shared_ptr<ToolRegistry> toolRegistry);
-
-		[[nodiscard]] bool UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const;
-		[[nodiscard]] bool UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const;
+		[[nodiscard]] bool UseLeftClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const;
+		[[nodiscard]] bool UseRightClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const;
 
 		const void SetTool(ToolEnum tool);
-		std::weak_ptr<const Tool> GetTool() const { return m_CurrentTool; }
+		[[nodiscard]] constexpr const Tool* GetTool() const { return m_CurrentTool; }
 	private:
-		std::weak_ptr<const Tool> m_CurrentTool;
+		const Tool* m_CurrentTool;
 		ToolEnum m_CurrentToolEnum = ToolEnum::Brush;
 
 		std::shared_ptr<ToolRegistry> m_ToolRegistry;

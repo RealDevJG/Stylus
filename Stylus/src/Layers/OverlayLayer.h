@@ -1,9 +1,7 @@
 #pragma once
 
-#include <Walnut/Application.h>
-#include <Walnut/Core/Events/InputEvents.h>
-
-#include <glm/glm.hpp>
+#include <Walnut/Layer.h>
+#include <memory>
 
 namespace Stylus {
 

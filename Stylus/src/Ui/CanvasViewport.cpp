@@ -1,10 +1,10 @@
 #include "CanvasViewport.h"
 
-#include <Walnut/Application.h>
-
 #include <backends/imgui_impl_vulkan.h>
 #include <glm/glm.hpp>
 #include <imgui_internal.h>
+
+#include <Walnut/Application.h>
 
 namespace Stylus {
 
@@ -13,8 +13,9 @@ namespace Stylus {
 		Cleanup();
 	}
 
-	void CanvasViewport::Setup(std::shared_ptr<Walnut::Image> canvasImage)
+	void CanvasViewport::Setup(Walnut::Image* canvasImage)
 	{
+		assert(canvasImage && "canvasImage passed to CanvasViewport::Setup was nullptr");
 		Cleanup();
 
 		VkSamplerCreateInfo samplerInfo = {};
@@ -37,8 +38,10 @@ namespace Stylus {
 		vkDestroySampler(Walnut::Application::GetDevice(), m_NearestSampler, nullptr);
 	}
 
-	void CanvasViewport::Render(std::shared_ptr<Walnut::Image> canvasImage)
+	void CanvasViewport::Render(Walnut::Image* canvasImage)
 	{
+		assert(canvasImage && "canvasImage passed to CanvasViewport::Render was nullptr");
+
 		m_ViewportOrigin = ImGui::GetCursorScreenPos();
 		ImVec2 viewportAvail = ImGui::GetContentRegionAvail();
 
@@ -55,13 +58,13 @@ namespace Stylus {
 		};
 
 		m_CanvasTopLeft = {
-			bgTopLeft.x + m_Pan.x,
-			bgTopLeft.y + m_Pan.y
+			std::floor(bgTopLeft.x + m_Pan.x),
+			std::floor(bgTopLeft.y + m_Pan.y)
 		};
 
 		ImVec2 canvasBottomRight = {
-			m_CanvasTopLeft.x + m_CanvasSize.x * m_Scale,
-			m_CanvasTopLeft.y + m_CanvasSize.y * m_Scale
+			std::floor(m_CanvasTopLeft.x + m_CanvasSize.x * m_Scale),
+			std::floor(m_CanvasTopLeft.y + m_CanvasSize.y * m_Scale)
 		};
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
@@ -98,7 +101,7 @@ namespace Stylus {
 		static float s_Sensitivity = 0.08f;
 		float oldZoom = m_Scale;
 
-		m_Scale += dz * (s_Sensitivity + oldZoom * 0.08);
+		m_Scale += dz * (s_Sensitivity + oldZoom * 0.08f);
 		m_Scale = glm::clamp(m_Scale, 0.1f, 50.0f);
 
 		float ratio = m_Scale / oldZoom;

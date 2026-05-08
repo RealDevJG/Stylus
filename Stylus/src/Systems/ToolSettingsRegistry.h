@@ -22,27 +22,27 @@ namespace Stylus {
 		ToolSettingsRegistry& operator=(ToolSettingsRegistry&&) = delete;
 
 		template<ToolSettingsEnum Setting>
-		auto& GetValue()
+		constexpr auto& GetValue()
 		{
 			return GetValueImpl<Setting>(*this);
 		}
 
 		template<ToolSettingsEnum Setting>
-		const auto& GetValue() const
+		constexpr auto& GetValue() const
 		{
 			return GetValueImpl<Setting>(*this);
 		}
 
 		template<ToolSettingsEnum... Settings>
-		auto CreateUiDrawer()
+		constexpr auto CreateUiDrawer()
 		{
 			return [this]() {
-				DrawToolbarRow(this->GetUiLambda<Settings>()...);
+				UI::DrawToolbarRow(this->GetUiLambda<Settings>()...);
 			};
 		}
 	private:
 		template<ToolSettingsEnum Setting, typename Self>
-		static auto& GetValueImpl(Self& self)
+		static constexpr auto& GetValueImpl(Self& self)
 		{
 			if constexpr (Setting == ToolSettingsEnum::PrimaryColour) return self.m_PrimaryColour;
 			else if constexpr (Setting == ToolSettingsEnum::SecondaryColour) return self.m_SecondaryColour;
@@ -52,33 +52,33 @@ namespace Stylus {
 			else static_assert(false, "GetValue: Unhandled ToolSettingEnum value");
 		}
 
-		auto PrimaryColourSettingsUi()
+		constexpr auto PrimaryColourSettingsUi()
 		{
 			return [this]() { ImGui::ColorEdit4("Primary Colour", &m_PrimaryColour.x, ImGuiColorEditFlags_NoInputs); };
 		}
 
-		auto SecondaryColourSettingsUi()
+		constexpr auto SecondaryColourSettingsUi()
 		{
 			return [this]() { ImGui::ColorEdit4("Secondary Colour", &m_SecondaryColour.x, ImGuiColorEditFlags_NoInputs); };
 		}
 
-		auto BrushWidthSettingsUi()
+		constexpr auto BrushWidthSettingsUi()
 		{
 			return [this]() { ImGui::SliderFloat("Width", &m_ToolWidth, 1, 256); };
 		}
 
-		auto BrushShapeSettingsUi()
+		constexpr auto BrushShapeSettingsUi()
 		{
-			return [this]() { EnumSelection("Brush Shape", m_ToolShape, BrushShapeList); };
+			return [this]() { UI::EnumSelection("Brush Shape", m_ToolShape, std::span{ BrushShapeList }); };
 		}
 
-		auto AntialiasingSettingsUi()
+		constexpr auto AntialiasingSettingsUi()
 		{
 			return [this]() { ImGui::Checkbox("Antialiasing", &m_Antialiased); };
 		}
 
 		template<ToolSettingsEnum Setting>
-		auto GetUiLambda()
+		constexpr auto GetUiLambda()
 		{
 			if constexpr (Setting == ToolSettingsEnum::PrimaryColour) return PrimaryColourSettingsUi();
 			else if constexpr (Setting == ToolSettingsEnum::SecondaryColour) return SecondaryColourSettingsUi();

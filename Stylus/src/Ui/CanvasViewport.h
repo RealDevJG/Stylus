@@ -2,10 +2,9 @@
 
 #include <glm/glm.hpp>
 #include <imgui.h>
-#include <Walnut/Image.h>
 
+#include <Walnut/Image.h>
 #include <cstdint>
-#include <memory>
 
 namespace Stylus {
 
@@ -15,10 +14,10 @@ namespace Stylus {
 		CanvasViewport() = default;
 		~CanvasViewport();
 
-		void Setup(std::shared_ptr<Walnut::Image> canvasImage);
+		void Setup(Walnut::Image* canvasImage);
 		void Cleanup();
 
-		void Render(std::shared_ptr<Walnut::Image> canvasImage);
+		void Render(Walnut::Image* canvasImage);
 		void ResizeCanvas(uint32_t width, uint32_t height);
 		void SetNeedsCentering(bool centre = true);
 

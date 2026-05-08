@@ -10,6 +10,7 @@ float sdSquare(vec2 pos, float radius)
 
 float sdTriangle(vec2 pos, float radius)
 {
+    pos.y = -pos.y;
     const float k = sqrt(3.0);
 
     pos.x = abs(pos.x) - radius;

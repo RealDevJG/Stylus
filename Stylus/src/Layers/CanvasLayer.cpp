@@ -42,7 +42,7 @@ namespace Stylus {
 		ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 		m_ViewportHovered = ImGui::IsWindowHovered();
-		m_CanvasViewport.Render(m_CanvasImage);
+		m_CanvasViewport.Render(m_CanvasImage.get());
 		UpdateMousePos();
 
 		ImGui::End();
@@ -92,7 +92,7 @@ namespace Stylus {
 
 	void CanvasLayer::UndoHistory()
 	{
-		if (auto data = m_HistoryManager->UndoHistory())
+		if (auto data = m_HistoryManager->Undo())
 		{
 			SetCanvasData(data->data());
 		}
@@ -100,7 +100,7 @@ namespace Stylus {
 
 	void CanvasLayer::RedoHistory()
 	{
-		if (auto data = m_HistoryManager->RedoHistory())
+		if (auto data = m_HistoryManager->Redo())
 		{
 			SetCanvasData(data->data());
 		}
@@ -207,8 +207,8 @@ namespace Stylus {
 
 	void CanvasLayer::CreateCanvas(uint32_t width, uint32_t height)
 	{
-		m_CanvasImage = std::make_shared<Walnut::Image>(width, height, Walnut::ImageFormat::RGBA);
-		m_ShaderRegistry->SetCanvasImage(m_CanvasImage);
+		m_CanvasImage = std::make_unique<Walnut::Image>(width, height, Walnut::ImageFormat::RGBA);
+		m_ShaderRegistry->SetCanvasImage(m_CanvasImage.get());
 
 		FillCanvasPushData pushData{ glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) };
 
@@ -216,7 +216,7 @@ namespace Stylus {
 		fillCanvasShader->DispatchShader(&pushData);
 
 		m_CanvasViewport.ResizeCanvas(width, height);
-		m_CanvasViewport.Setup(m_CanvasImage);
+		m_CanvasViewport.Setup(m_CanvasImage.get());
 
 		SaveHistory();
 	}
