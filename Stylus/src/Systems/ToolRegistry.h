@@ -14,7 +14,7 @@ namespace Stylus {
 	class ToolRegistry
 	{
 	public:
-		ToolRegistry() = default;
+		ToolRegistry(std::shared_ptr<ToolSettingsRegistry> toolSettingsRegistry, std::shared_ptr<ShaderRegistry> shaderRegistry);
 		~ToolRegistry() = default;
 
 		ToolRegistry(const ToolRegistry&) = delete;
@@ -22,14 +22,14 @@ namespace Stylus {
 		ToolRegistry(ToolRegistry&&) = delete;
 		ToolRegistry& operator=(ToolRegistry&&) = delete;
 
-		void Init(std::shared_ptr<ToolSettingsRegistry> toolSettingsRegistry, std::shared_ptr<ShaderRegistry> shaderRegistry);
-
-		[[nodiscard]] std::shared_ptr<const Tool> GetTool(ToolEnum tool) const;
+		[[nodiscard]] const Tool* GetTool(ToolEnum tool) const;
 		[[nodiscard]] ToolEnum GetToolEnum(Walnut::KeyCode shortcut) const;
 
-		[[nodiscard]] const std::unordered_map<ToolEnum, std::shared_ptr<const Tool>>& GetTools() const;
+		[[nodiscard]] const std::unordered_map<ToolEnum, std::unique_ptr<const Tool>>& GetTools() const;
 	private:
-		std::unordered_map<ToolEnum, std::shared_ptr<const Tool>> m_Tools;
+		void RegisterTools(ToolSettingsRegistry* toolSettingsRegistry, ShaderRegistry* shaderRegistry);
+	private:
+		std::unordered_map<ToolEnum, std::unique_ptr<const Tool>> m_Tools;
 		std::unordered_map<Walnut::KeyCode, ToolEnum> m_KeyShortcuts;
 	};
 

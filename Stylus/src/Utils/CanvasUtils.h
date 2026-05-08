@@ -1,14 +1,16 @@
 #pragma once
 
 #include "../Layers/CanvasLayer.h"
+
+#include <Walnut/Application.h>
 #include <glm/glm.hpp>
 
 namespace Stylus::Utils {
 
-    glm::vec4 GetColourAt(glm::vec2 mousePos)
+    [[nodiscard]] const glm::vec4 GetColourAt(glm::vec2 mousePos)
     {
         auto canvasLayer = Walnut::Application::Get().GetLayer<CanvasLayer>();
-        auto canvasImage = canvasLayer->GetCanvasImage();
+        const Walnut::Image* canvasImage = canvasLayer->GetCanvasImage();
 
         uint32_t x = std::clamp((uint32_t)mousePos.x, 0u, canvasImage->GetWidth() - 1);
         uint32_t y = std::clamp((uint32_t)mousePos.y, 0u, canvasImage->GetHeight() - 1);

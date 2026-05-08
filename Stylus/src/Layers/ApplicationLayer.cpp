@@ -1,25 +1,25 @@
 #include "ApplicationLayer.h"
 
+#include "../Layers/CanvasLayer.h"
+#include "../Layers/UiLayer.h"
+
 #include "../Systems/ToolManager.h"
 #include "../Systems/ToolRegistry.h"
-#include "../Systems/ShaderRegistry.h"
-#include "../Systems/ToolSettingsRegistry.h"
+#include "../Systems/ToolSettingsController.h"
 
-#include "../Layers/CanvasLayer.h"
-
-#include <Walnut/UI/UI.h>
-#include <glm/glm.hpp>
+#include <Walnut/Application.h>
 
 namespace Stylus {
 
+	ApplicationLayer::ApplicationLayer(
+		std::shared_ptr<ToolManager> toolManager,
+		std::shared_ptr<ToolRegistry> toolRegistry,
+		std::shared_ptr<ToolSettingsController> toolSettingsController
+	) : m_ToolManager(toolManager), m_ToolRegistry(toolRegistry), m_ToolSettingsController(toolSettingsController) {}
+
 	void ApplicationLayer::OnAttach()
 	{
-		m_ToolManager->SetTool(ToolEnum::Brush);
-	}
-
-	void ApplicationLayer::OnDetach()
-	{
-		m_ShaderRegistry->Cleanup();
+		SetMenubarCallback();
 	}
 
 	void ApplicationLayer::OnEvent(Walnut::Event& event)
@@ -32,31 +32,74 @@ namespace Stylus {
 	{
 		Walnut::KeyCode keyCode = event.GetKeyCode();
 
-		// TODO: refactor so the clamping and rounding is done somewhere more central to settings
-		if (keyCode == Walnut::KeyCode::LeftBracket)
+		if (keyCode == Walnut::KeyCode::LeftBracket || keyCode == Walnut::KeyCode::RightBracket)
 		{
-			auto& value = m_ToolSettingsRegistry->GetValue<TSE::Width>();
-			value = glm::floor(glm::clamp(value - 1, 1.0f, 256.0f));
-
-			return true;
-		}
-		else if (keyCode == Walnut::KeyCode::RightBracket)
-		{
-			auto& value = m_ToolSettingsRegistry->GetValue<TSE::Width>();
-			value = glm::floor(glm::clamp(value + 1, 1.0f, 256.0f));
-
+			float moveBy = static_cast<float>(keyCode) - 92.0f;
+			m_ToolSettingsController->ChangeBrushWidthBy(moveBy);
 			return true;
 		}
 
-		ToolEnum toolEnum = m_ToolRegistry->GetToolEnum(keyCode);
-
-		if (toolEnum == ToolEnum::None)
+		if (auto toolEnum = m_ToolRegistry->GetToolEnum(keyCode); toolEnum != ToolEnum::None)
 		{
-			return false;
+			m_ToolManager->SetTool(toolEnum);
+			return true;
 		}
 
-		m_ToolManager->SetTool(toolEnum);
-		return true;
+		return false;
+	}
+
+	void ApplicationLayer::SetMenubarCallback() const
+	{
+		Walnut::Application& app = Walnut::Application::Get();
+
+		app.SetMenubarCallback(
+			[&app]()
+			{
+				if (ImGui::BeginMenu("File"))
+				{
+					if (ImGui::MenuItem("Exit"))
+					{
+						app.Close();
+					}
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Edit"))
+				{
+					if (ImGui::MenuItem("Undo (ctrl+z)"))
+					{
+						CanvasLayer* canvasLayer = app.GetLayer<CanvasLayer>();
+						canvasLayer->UndoHistory();
+					}
+
+					if (ImGui::MenuItem("Redo (ctrl+y)"))
+					{
+						CanvasLayer* canvasLayer = app.GetLayer<CanvasLayer>();
+						canvasLayer->RedoHistory();
+					}
+
+					if (ImGui::MenuItem("Resize Canvas"))
+					{
+						UiLayer* uiLayer = app.GetLayer<UiLayer>();
+						uiLayer->OpenResizeCanvasModal();
+					}
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("View"))
+				{
+					if (ImGui::MenuItem("Default Window Layout"))
+					{
+						UiLayer* uiLayer = app.GetLayer<UiLayer>();
+						uiLayer->SetDefaultLayout();
+					}
+
+					ImGui::EndMenu();
+				}
+			}
+		);
 	}
 
 }

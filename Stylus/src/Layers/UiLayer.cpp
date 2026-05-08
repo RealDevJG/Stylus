@@ -9,11 +9,8 @@
 #include "../Systems/ToolRegistry.h"
 
 #include <imgui.h>
-#include <imgui_internal.h>
+#include <Walnut/Application.h>
 #include <Walnut/UI/UI.h>
-
-#include <charconv>
-#include <fstream>
 
 namespace Stylus {
 
@@ -46,27 +43,10 @@ namespace Stylus {
 		windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
 
 		ImGui::SetNextWindowClass(&windowClass);
-		ImGui::Begin("Tool Bar");
-
-		const auto& tools = m_ToolRegistry->GetTools();
-		for (const auto& [toolEnum, tool] : tools)
-		{
-			const ToolData& toolData = tool->GetToolData();
-			m_UiDrawer.DrawToolButton(toolEnum, toolData.Name);
-		}
-
-		ImGui::End();
+		DrawToolBar();
 
 		ImGui::SetNextWindowClass(&windowClass);
-		ImGui::Begin("Tool Options");
-
-		std::weak_ptr<const Tool> currentTool = m_ToolManager->GetTool();
-		if (auto tool = currentTool.lock())
-		{
-			m_UiDrawer.DrawToolOptions([&tool]() { tool->DrawOptionsUI(); });
-		}
-
-		ImGui::End();
+		DrawToolSettings();
 	}
 
 	void UiLayer::SetDefaultLayout()
@@ -82,7 +62,7 @@ namespace Stylus {
 		m_ShouldCentreResizeModal = true;
 	}
 
-	void UiLayer::DefaultLayout()
+	void UiLayer::DefaultLayout() const
     {
         ImGuiID dockspaceId = ImGui::GetID("MyDockspace");
 
@@ -146,6 +126,32 @@ namespace Stylus {
 		}
 
 		ImGui::EndPopup();
+	}
+
+	void UiLayer::DrawToolBar() const
+	{
+		ImGui::Begin("Tool Bar");
+
+		const auto& tools = m_ToolRegistry->GetTools();
+		for (const auto& [toolEnum, tool] : tools)
+		{
+			const ToolData& toolData = tool->GetToolData();
+			m_UiDrawer.DrawToolButton(toolEnum, toolData.Name);
+		}
+
+		ImGui::End();
+	}
+
+	void UiLayer::DrawToolSettings() const
+	{
+		ImGui::Begin("Tool Options");
+
+		if (const Tool* currentTool = m_ToolManager->GetTool())
+		{
+			m_UiDrawer.DrawToolOptions([&currentTool]() { currentTool->DrawOptionsUI(); });
+		}
+
+		ImGui::End();
 	}
 
 }

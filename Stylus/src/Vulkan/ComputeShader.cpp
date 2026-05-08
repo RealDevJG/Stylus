@@ -36,7 +36,7 @@ namespace Stylus {
 		vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
 	}
 
-	void ComputeShader::SetImage(std::shared_ptr<Walnut::Image> canvasImage)
+	void ComputeShader::SetImage(Walnut::Image* canvasImage)
 	{
 		vkDeviceWaitIdle(m_Device);
 
@@ -44,7 +44,7 @@ namespace Stylus {
 		UpdateDescriptorSets();
 	}
 
-	void ComputeShader::DispatchShader(const void* pushData)
+	void ComputeShader::DispatchShader(const void* pushData) const
 	{
 		assert(m_CanvasImage && "[ComputeShader] DispatchShader was called without using SetImage() first\n");
 
@@ -147,7 +147,7 @@ namespace Stylus {
 		vkDestroyShaderModule(m_Device, shaderModule, nullptr);
 	}
 
-	VkShaderModule ComputeShader::CreateShaderModule(const std::filesystem::path& shaderPath)
+	VkShaderModule ComputeShader::CreateShaderModule(const std::filesystem::path& shaderPath) const
 	{
 		Stylus::FileReader fileReader(shaderPath);
 		std::vector<uint32_t> fileBuffer = fileReader.Read();

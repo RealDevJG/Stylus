@@ -1,10 +1,11 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 
 namespace Stylus {
 
-	enum class BrushShapeEnum
+	enum class BrushShapeEnum : uint16_t
 	{
 		Circle = 0,
 		Square,

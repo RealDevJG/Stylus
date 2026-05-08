@@ -11,12 +11,7 @@ namespace Stylus {
 		m_File = std::ifstream(path, std::ios::binary | std::ios::ate);
 	}
 
-	FileReader::~FileReader()
-	{
-		m_File.close();
-	}
-
-	std::vector<uint32_t> FileReader::Read()
+	std::vector<uint32_t> FileReader::Read() noexcept
 	{
 		if (!m_File.good())
 		{
@@ -25,11 +20,9 @@ namespace Stylus {
 		}
 
 		const size_t fileSize = static_cast<size_t>(m_File.tellg());
+		assert(fileSize % 4 == 0 && "Shader file is invalid SPIR-V. The file is not 4-byte aligned");
 
-		// File is not valid SPIR-V if not 4-byte aligned
-		assert(fileSize % 4 == 0);
-
-		// division to translate bytes from std::ios::binary into uint32_t
+		// Division to translate bytes from std::ios::binary into uint32_t
 		std::vector<uint32_t> buffer;
 		buffer.resize(fileSize / 4);
 

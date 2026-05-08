@@ -5,11 +5,11 @@
 
 namespace Stylus {
 
-	template<typename T>
+	template<typename T> requires std::movable<T>
 	class HistoryManager
 	{
 	public:
-		explicit HistoryManager(size_t maxCapacity = 30)
+		explicit HistoryManager(size_t maxCapacity = 30) // maxCapacity includes initial state
 			: m_MaxCapacity(maxCapacity) {}
 		~HistoryManager() = default;
 
@@ -20,7 +20,7 @@ namespace Stylus {
 		HistoryManager(HistoryManager&&) noexcept = default;
 		HistoryManager& operator=(HistoryManager&&) noexcept = default;
 
-		template<typename U>
+		template<std::convertible_to<T> U>
 		void ActionPerformed(U&& data)
 		{
 			if (!m_History.empty() && m_CurrentIndex < m_History.size() - 1)
@@ -33,29 +33,29 @@ namespace Stylus {
 				m_History.pop_front();
 			}
 
-			m_History.push_back(std::forward<U>(data));
+			m_History.emplace_back(std::forward<U>(data));
 			m_CurrentIndex = m_History.size() - 1;
 		}
 
-		[[nodiscard]] const T* UndoHistory()
+		[[nodiscard]] const T* Undo()
 		{
 			if (!CanUndo())
 			{
 				return nullptr;
 			}
 
-			m_CurrentIndex--;
+			--m_CurrentIndex;
 			return &m_History[m_CurrentIndex];
 		}
 
-		[[nodiscard]] const T* RedoHistory()
+		[[nodiscard]] const T* Redo()
 		{
 			if (!CanRedo())
 			{
 				return nullptr;
 			}
 
-			m_CurrentIndex++;
+			++m_CurrentIndex;
 			return &m_History[m_CurrentIndex];
 		}
 

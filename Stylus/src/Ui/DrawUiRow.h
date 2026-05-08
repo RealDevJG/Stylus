@@ -2,10 +2,10 @@
 
 #include <imgui.h>
 
-namespace Stylus {
+namespace Stylus::UI {
 
     template<typename... UIControls>
-    void DrawToolbarRow(UIControls&&... packedControls)
+    constexpr void DrawToolbarRow(UIControls&&... packedControls)
     {
         ImGui::PushItemWidth(120);
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 0.2f));

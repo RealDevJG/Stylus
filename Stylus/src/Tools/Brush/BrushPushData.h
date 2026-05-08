@@ -11,16 +11,16 @@ namespace Stylus {
 			glm::vec2 mousePos,
 			glm::vec2 prevMousePos,
 			int shape,
-			float radius,
+			float width,
 			uint8_t antialiased
-		) : Colour(colour), MousePos(mousePos), PrevMousePos(prevMousePos), Shape(shape), Radius(radius), Antialiased(antialiased)
+		) : Colour(colour), MousePos(mousePos), PrevMousePos(prevMousePos), Shape(shape), Width(width), Antialiased(antialiased)
 		{}
 
 		glm::vec4 Colour;
 		glm::vec2 MousePos;
 		glm::vec2 PrevMousePos;
 		int Shape;
-		float Radius;
+		float Width;
 		uint32_t Antialiased;
 	};
 

@@ -3,7 +3,7 @@
 #include "../Systems/HistoryManager.h"
 #include "../Ui/CanvasViewport.h"
 
-#include <Walnut/Application.h>
+#include <Walnut/Layer.h>
 #include <Walnut/Core/Events/InputEvents.h>
 
 #include <glm/glm.hpp>
@@ -43,16 +43,16 @@ namespace Stylus {
 
 		void CreateCanvas(uint32_t width, uint32_t height);
 		void ResizeCanvas(uint32_t width, uint32_t height);
-		float GetCanvasScale();
+		[[nodiscard]] float GetCanvasScale();
 
 		void SetCanvasData(const void* data) const;
 
-		std::shared_ptr<Walnut::Image> GetCanvasImage() const { return m_CanvasImage; }
+		const Walnut::Image* GetCanvasImage() const { return m_CanvasImage.get(); }
 	private:
 		void UpdateMousePos();
 	private:
 		CanvasViewport m_CanvasViewport;
-		std::shared_ptr<Walnut::Image> m_CanvasImage{};
+		std::unique_ptr<Walnut::Image> m_CanvasImage{};
 
 		glm::vec2 m_MousePos{};
 		glm::vec2 m_PrevMousePos{};
