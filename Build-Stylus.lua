@@ -7,6 +7,7 @@ workspace "Stylus"
    -- Workspace-wide build options for MSVC
    filter "system:windows"
       buildoptions { "/EHsc", "/Zc:preprocessor", "/Zc:__cplusplus" }
+      multiprocessorcompile "On"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 

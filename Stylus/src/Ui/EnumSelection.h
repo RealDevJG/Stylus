@@ -3,7 +3,6 @@
 #include "../Concepts/EnumType.h"
 #include "../Concepts/TupleLikeType.h"
 
-#include <span>
 #include <ranges>
 #include <imgui.h>
 

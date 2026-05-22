@@ -1,33 +1,44 @@
 #include "ColourPickerTool.h"
 
-#include "../../Layers/CanvasLayer.h"
 #include "../../Utils/CanvasUtils.h"
+#include "../../Systems/ToolSettingsUpdater.h"
 
-#include <Walnut/Application.h>
+#include <imgui.h>
+#include <memory>
 
 namespace Stylus {
 
-	ColourPickerTool::ColourPickerTool(std::function<void()> drawUiStrategy, const ToolData& toolData, ColourPickerSettingsContext context)
-		: Tool(drawUiStrategy, toolData), m_SettingsContext(context) {}
+	ColourPickerTool::ColourPickerTool(const ToolData& toolData, std::function<void()> drawSettingsUIStrategy)
+		: Tool(toolData, drawSettingsUIStrategy) {}
 
-    bool ColourPickerTool::UseLeftClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
+    ToolAction ColourPickerTool::GetLeftClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
     {
-        glm::vec4 colour = Utils::GetColourAt(mousePos);
-        m_SettingsContext.Set<TSE::PrimaryColour>(colour);
-        return false;
+        glm::vec4 newColour = Utils::GetColourAt(mousePos);
+
+        return ToolAction{
+            ToolActionType::UpdateSettingValueAction,
+            UpdateSettingValueAction{
+                .SettingsUpdater = std::make_unique<ToolSettingsUpdater<TSE::PrimaryColour, glm::vec4>>(newColour)
+            }
+        };
     }
 
-	bool ColourPickerTool::UseRightClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
+	ToolAction ColourPickerTool::GetRightClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
 	{
-        glm::vec4 colour = Utils::GetColourAt(mousePos);
-        m_SettingsContext.Set<TSE::SecondaryColour>(colour);
-        return false;
+        glm::vec4 newColour = Utils::GetColourAt(mousePos);
+
+        return ToolAction{
+            ToolActionType::UpdateSettingValueAction,
+            UpdateSettingValueAction{
+                .SettingsUpdater = std::make_unique<ToolSettingsUpdater<TSE::SecondaryColour, glm::vec4>>(newColour)
+            }
+        };
     }
 
-    void ColourPickerTool::DrawOverlayHint(const ImVec2 mousePos, float scale) const
+    void ColourPickerTool::DrawOverlayHint(const glm::vec2 mousePos, float scale) const
     {
         ImDrawList* drawList = ImGui::GetWindowDrawList();
-        drawList->AddCircle(ImVec2(mousePos.x, mousePos.y), 0.5f * scale, s_OverlayHintColour, 50, s_OverlayHintThickness);
+        drawList->AddCircle(ImVec2(mousePos.x, mousePos.y), 0.5f * scale, IM_COL32(0, 0, 0, 255), 50, s_OverlayHintThickness);
     }
 
 }

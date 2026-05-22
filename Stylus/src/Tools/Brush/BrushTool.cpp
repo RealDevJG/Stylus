@@ -1,61 +1,63 @@
 #include "BrushTool.h"
 
-#include "BrushPushData.h"
-#include "../../Vulkan/ComputeShader.h"
+#include "../../Vulkan/PushData.h"
+#include "../ToolSettingsEnum.h"
 
 #include <imgui.h>
 
 namespace Stylus {
 
-	BrushTool::BrushTool(std::function<void()> drawUiStrategy, const ToolData& toolData, const ComputeShader* shader, BrushSettingsContext context)
-		: Tool(drawUiStrategy, toolData), m_Shader(shader), m_SettingsContext(context) {}
+	BrushTool::BrushTool(const ToolData& toolData, std::function<void()> drawSettingsUIStrategy, ToolSettingsStore& settingsStore)
+		: Tool(toolData, drawSettingsUIStrategy), m_SettingsStore(settingsStore) {}
 
-	bool BrushTool::UseLeftClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
+	ToolAction BrushTool::GetLeftClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
 	{
-		if (m_Shader)
-		{
-			BrushPushData pushData{
-				m_SettingsContext.Get<TSE::PrimaryColour>(),
-				mousePos,
-				prevMousePos,
-				static_cast<int>(m_SettingsContext.Get<TSE::Shape>()),
-				m_SettingsContext.Get<TSE::Width>(),
-				m_SettingsContext.Get<TSE::Antialiasing>() ? 1u : 0u
-			};
+		BrushLikePushData pushData{
+			m_SettingsStore.GetValue<TSE::PrimaryColour>(),
+			mousePos,
+			prevMousePos,
+			static_cast<int>(m_SettingsStore.GetValue<TSE::Shape>()),
+			m_SettingsStore.GetValue<TSE::Width>(),
+			m_SettingsStore.GetValue<TSE::Antialiasing>() ? 1u : 0u
+		};
 
-			m_Shader->DispatchShader(&pushData);
-			return true;
-		}
-
-		return false;
+		return ToolAction{
+			ToolActionType::ComputeShaderAction,
+			ComputeShaderAction{
+				.ShaderEnum = ComputeShaderEnum::BrushLikeTool,
+				.PushData = Utils::CopyToBytes(pushData),
+				.PushDataSize = GetToolData().ComputePushConstantSize
+			}
+		};
 	}
 
-	bool BrushTool::UseRightClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
+	ToolAction BrushTool::GetRightClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
 	{
-		if (m_Shader)
-		{
-			BrushPushData pushData{
-				m_SettingsContext.Get<TSE::SecondaryColour>(),
-				mousePos,
-				prevMousePos,
-				static_cast<int>(m_SettingsContext.Get<TSE::Shape>()),
-				m_SettingsContext.Get<TSE::Width>(),
-				m_SettingsContext.Get<TSE::Antialiasing>() ? 1u : 0u
-			};
+		BrushLikePushData pushData{
+			m_SettingsStore.GetValue<TSE::SecondaryColour>(),
+			mousePos,
+			prevMousePos,
+			static_cast<int>(m_SettingsStore.GetValue<TSE::Shape>()),
+			m_SettingsStore.GetValue<TSE::Width>(),
+			m_SettingsStore.GetValue<TSE::Antialiasing>() ? 1u : 0u
+		};
 
-			m_Shader->DispatchShader(&pushData);
-			return true;
-		}
-
-		return false;
+		return ToolAction{
+			ToolActionType::ComputeShaderAction,
+			ComputeShaderAction{
+				.ShaderEnum = ComputeShaderEnum::BrushLikeTool,
+				.PushData = Utils::CopyToBytes(pushData),
+				.PushDataSize = GetToolData().ComputePushConstantSize
+			}
+		};
 	}
 
-	void BrushTool::DrawOverlayHint(const ImVec2 mousePos, float scale) const
+	void BrushTool::DrawOverlayHint(const glm::vec2 mousePos, float scale) const
 	{
-		float radius = m_SettingsContext.Get<TSE::Width>() * scale * 0.5f;
+		float radius = m_SettingsStore.GetValue<TSE::Width>() * scale * 0.5f;
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->AddCircle(ImVec2(mousePos.x, mousePos.y), radius + 1, s_OverlayHintColour, 50, s_OverlayHintThickness);
+		drawList->AddCircle(ImVec2(mousePos.x, mousePos.y), radius + 1, IM_COL32(0, 0, 0, 255), 50, s_OverlayHintThickness);
 	}
 
 }

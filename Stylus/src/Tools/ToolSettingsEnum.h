@@ -4,7 +4,7 @@
 
 namespace Stylus {
 
-	enum class ToolSettingsEnum : uint16_t
+	enum class ToolSettingsEnum : uint8_t
 	{
 		Width = 0,
 		Shape,
