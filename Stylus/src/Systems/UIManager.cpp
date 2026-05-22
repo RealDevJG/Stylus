@@ -1,36 +1,34 @@
-#include "UILayer.h"
+#include "UIManager.h"
 
 #include "../Tools/Tool.h"
 #include "../Tools/ToolData.h"
-#include "../Tools/ToolEnum.h"
-
-#include "../Layers/CanvasLayer.h"
-#include "../Systems/ToolManager.h"
-#include "../Systems/ToolRegistry.h"
+#include "../Utils/ConversionUtils.h"
 
 #include <imgui.h>
-#include <Walnut/Application.h>
 #include <Walnut/UI/UI.h>
 
 namespace Stylus {
 
-	void UiLayer::OnUIRender()
+	UIManager::UIManager(IToolManagerState& toolManagerState, IToolRegistryReadonly& toolRegistryReadOnly, ICanvasContext& canvasContext)
+		: m_ToolManagerState(toolManagerState), m_ToolRegistryReadonly(toolRegistryReadOnly), m_CanvasContext(canvasContext) {}
+
+	void UIManager::Render()
 	{
 		static bool s_FirstFrame = true;
-
-		if (m_ResizeCanvasModalOpen)
-		{
-			DrawResizeCanvasModal();
-		}
 
 		if (s_FirstFrame)
 		{
 			s_FirstFrame = false;
 
-			if (ImGui::FindWindowSettings(ImHashStr("Canvas")) == nullptr)
+			if (ImGui::FindWindowSettings(ImHashStr("Canvas Viewport")) == nullptr)
 			{
 				m_ShouldSetDefaultLayout = true;
 			}
+		}
+
+		if (m_ResizeCanvasModalOpen)
+		{
+			DrawResizeCanvasModal();
 		}
 
 		if (m_ShouldSetDefaultLayout)
@@ -42,19 +40,25 @@ namespace Stylus {
 		ImGuiWindowClass windowClass;
 		windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
 
+		// Tool bar
 		ImGui::SetNextWindowClass(&windowClass);
 		DrawToolBar();
 
+		// Tool settings bar
 		ImGui::SetNextWindowClass(&windowClass);
 		DrawToolSettings();
+
+		// Tool overlay e.g. circle outline of where brush is going to draw
+		ImGui::SetNextWindowClass(&windowClass);
+		DrawToolOverlayHint();
 	}
 
-	void UiLayer::SetDefaultLayout()
+	void UIManager::SetDefaultLayout()
 	{
 		m_ShouldSetDefaultLayout = true;
 	}
 
-	void UiLayer::OpenResizeCanvasModal()
+	void UIManager::OpenResizeCanvasModal()
 	{
 		m_ResizeWidthBuffer = { "854" };
 		m_ResizeHeightBuffer = { "480" };
@@ -62,7 +66,7 @@ namespace Stylus {
 		m_ShouldCentreResizeModal = true;
 	}
 
-	void UiLayer::DefaultLayout() const
+	void UIManager::DefaultLayout() const
     {
         ImGuiID dockspaceId = ImGui::GetID("MyDockspace");
 
@@ -76,12 +80,12 @@ namespace Stylus {
 
 		ImGui::DockBuilderDockWindow("Tool Options", dockOptionsId);
 		ImGui::DockBuilderDockWindow("Tool Bar", dockToolsId);
-		ImGui::DockBuilderDockWindow("Canvas", dockCanvasId);
+		ImGui::DockBuilderDockWindow("Canvas Viewport", dockCanvasId);
 
 		ImGui::DockBuilderFinish(dockspaceId);
 	}
 
-	void UiLayer::DrawResizeCanvasModal()
+	void UIManager::DrawResizeCanvasModal()
 	{
 		if (!m_ResizeCanvasModalOpen)
 		{
@@ -114,8 +118,7 @@ namespace Stylus {
 				std::from_chars(m_ResizeWidthBuffer.data(), m_ResizeWidthBuffer.data() + m_ResizeWidthBuffer.size(), width);
 				std::from_chars(m_ResizeHeightBuffer.data(), m_ResizeHeightBuffer.data() + m_ResizeHeightBuffer.size(), height);
 
-				CanvasLayer* canvasLayer = Walnut::Application::Get().GetLayer<CanvasLayer>();
-				canvasLayer->ResizeCanvas(width, height);
+				m_CanvasContext.CreateCanvas(width, height);
 			}
 
 			if (Walnut::UI::ButtonCentered("Cancel"))
@@ -128,30 +131,55 @@ namespace Stylus {
 		ImGui::EndPopup();
 	}
 
-	void UiLayer::DrawToolBar() const
+	void UIManager::DrawToolBar() const
 	{
 		ImGui::Begin("Tool Bar");
 
-		const auto& tools = m_ToolRegistry->GetTools();
+		const auto& tools = m_ToolRegistryReadonly.GetTools();
 		for (const auto& [toolEnum, tool] : tools)
 		{
 			const ToolData& toolData = tool->GetToolData();
-			m_UiDrawer.DrawToolButton(toolEnum, toolData.Name);
+			DrawToolButton(toolEnum, toolData.Name);
 		}
 
 		ImGui::End();
 	}
 
-	void UiLayer::DrawToolSettings() const
+	void UIManager::DrawToolSettings() const
 	{
 		ImGui::Begin("Tool Options");
 
-		if (const Tool* currentTool = m_ToolManager->GetTool())
+		if (const Tool* currentTool = m_ToolManagerState.GetCurrentTool())
 		{
-			m_UiDrawer.DrawToolOptions([&currentTool]() { currentTool->DrawOptionsUI(); });
+			currentTool->DrawSettingsUI();
 		}
 
 		ImGui::End();
+	}
+
+	void UIManager::DrawToolOverlayHint() const
+	{
+		ImGui::Begin("Canvas Viewport", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+		if (const Tool* currentTool = m_ToolManagerState.GetCurrentTool())
+		{
+			float scale = m_CanvasContext.GetCanvasScale();
+			ImVec2 mousePos = ImGui::GetMousePos();
+
+			currentTool->DrawOverlayHint(Utils::ToGlmVec2(mousePos), scale);
+		}
+
+		ImGui::End();
+	}
+
+	void UIManager::DrawToolButton(ToolEnum toolEnum, std::string_view toolName) const
+	{
+		const float width = ImGui::GetContentRegionAvail().x;
+
+		if (ImGui::Button(toolName.data(), ImVec2(width, 35)))
+		{
+			m_ToolManagerState.SetTool(toolEnum);
+		}
 	}
 
 }

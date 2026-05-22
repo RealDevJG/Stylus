@@ -1,15 +1,14 @@
 #pragma once
 
-#include <memory>
+#include "ToolSettingsStore.h"
+#include <Walnut/Input/KeyCodes.h>
 
 namespace Stylus {
-
-	class ToolSettingsRegistry;
 
 	class ToolSettingsController
 	{
 	public:
-		ToolSettingsController(std::shared_ptr<ToolSettingsRegistry> settingsRegistry);
+		ToolSettingsController(ToolSettingsStore& settingsStore);
 		~ToolSettingsController() = default;
 
 		ToolSettingsController(const ToolSettingsController&) = delete;
@@ -17,9 +16,11 @@ namespace Stylus {
 		ToolSettingsController(ToolSettingsController&&) = delete;
 		ToolSettingsController& operator=(ToolSettingsController&&) = delete;
 
+		bool OnKeyPressed(Walnut::KeyCode keyCode) const;
+	private:
 		float ChangeBrushWidthBy(float moveBy) const;
 	private:
-		std::shared_ptr<ToolSettingsRegistry> m_ToolSettingsRegistry;
+		ToolSettingsStore& m_ToolSettingsStore;
 	};
 
 }

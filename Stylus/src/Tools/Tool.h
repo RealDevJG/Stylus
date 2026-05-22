@@ -1,9 +1,10 @@
 #pragma once
 
+#include "ToolActions.h"
 #include "ToolData.h"
 
-#include <glm/glm.hpp>
-#include <imgui.h>
+#include <glm/vec2.hpp>
+#include <glm/vec4.hpp> // TODO: remove when below TODO is moved too
 #include <functional>
 
 namespace Stylus {
@@ -11,22 +12,23 @@ namespace Stylus {
 	class Tool
 	{
 	public:
-		inline static ImU32 s_OverlayHintColour = IM_COL32(0, 0, 0, 255);
+		// TODO: move
+		inline static glm::vec4 s_OverlayHintColour{ 0.0f, 0.0f, 0.0f, 255.0f };
 		inline static float s_OverlayHintThickness = 1.0f;
 
-		Tool(std::function<void()> drawUiStrategy, const ToolData& toolData)
-			: m_DrawUiStrategy(drawUiStrategy), m_ToolData(toolData) {}
+		Tool(const ToolData& toolData, std::function<void()> drawSettingsUIStrategy)
+			: m_ToolData(toolData), m_DrawSettingsUIStrategy(drawSettingsUIStrategy) {}
 
-		void DrawOptionsUI() const { m_DrawUiStrategy(); }
+		void DrawSettingsUI() const { m_DrawSettingsUIStrategy(); }
 
-		virtual bool UseLeftClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const = 0;
-		virtual bool UseRightClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const = 0;
-		virtual void DrawOverlayHint(const ImVec2 mousePos, float scale) const = 0;
+		virtual ToolAction GetLeftClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const = 0;
+		virtual ToolAction GetRightClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const = 0;
+		virtual void DrawOverlayHint(const glm::vec2 mousePos, float scale) const = 0;
 
 		[[nodiscard]] const ToolData& GetToolData() const { return m_ToolData; }
 	private:
-		std::function<void()> m_DrawUiStrategy;
 		ToolData m_ToolData;
+		std::function<void()> m_DrawSettingsUIStrategy;
 	};
 
 }
