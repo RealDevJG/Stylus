@@ -27,10 +27,13 @@ namespace Stylus {
 		bool RegisterGraphics(const GraphicsShaderEnum shaderEnum, const std::filesystem::path& vertPath, const std::filesystem::path& fragPath, uint32_t pushSize);
 
 		void UpdateStorageImage(VkImageView imageView) override;
+		void UpdateFramebuffers(VkDevice device, VkImageView imageView, uint32_t width, uint32_t height) override;
 
 		[[nodiscard]] ComputeShader* GetCompute(const ComputeShaderEnum shaderEnum) const override;
 		[[nodiscard]] GraphicsShader* GetGraphics(const GraphicsShaderEnum shaderEnum) const override;
 		[[nodiscard]] VkDescriptorSet GetDescriptorSet() const override;
+		[[nodiscard]] VkFramebuffer GetFramebuffer() const override;
+		[[nodiscard]] VkRenderPass GetRenderPass() const override;
 	private:
 		void Cleanup();
 	private:
@@ -40,6 +43,8 @@ namespace Stylus {
 		VkDescriptorSetLayout m_DescriptorSetLayout{ VK_NULL_HANDLE };
 		VkDescriptorPool m_DescriptorPool{ VK_NULL_HANDLE };
 		VkDescriptorSet m_DescriptorSet{ VK_NULL_HANDLE };
+		VkFramebuffer m_Framebuffer{ VK_NULL_HANDLE };
+		VkRenderPass m_RenderPass{ VK_NULL_HANDLE };
 	};
 
 }

@@ -12,10 +12,21 @@ namespace Stylus {
 		return *m_CanvasImage;
 	}
 
+	const Walnut::Image& Canvas::GetOverlayImage() const
+	{
+		return *m_OverlayImage;
+	}
+
 	const Walnut::Image& Canvas::CreateCanvasImage(uint32_t width, uint32_t height)
 	{
 		m_CanvasImage = std::make_unique<Walnut::Image>(width, height, Walnut::ImageFormat::RGBA);
-		return GetCanvasImage();
+		return *m_CanvasImage;
+	}
+
+	const Walnut::Image& Canvas::CreateOverlayImage(uint32_t width, uint32_t height)
+	{
+		m_OverlayImage = std::make_unique<Walnut::Image>(width, height, Walnut::ImageFormat::RGBA);
+		return *m_OverlayImage;
 	}
 
 }

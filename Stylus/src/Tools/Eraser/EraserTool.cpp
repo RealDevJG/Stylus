@@ -1,7 +1,6 @@
 #include "EraserTool.h"
 
 #include "../../Vulkan/PushData.h"
-#include <imgui.h>
 
 namespace Stylus {
 
@@ -50,12 +49,23 @@ namespace Stylus {
 		};
 	}
 
-	void EraserTool::DrawOverlayHint(const glm::vec2 mousePos, float scale) const
+	ToolAction EraserTool::DrawOverlayHint(const glm::vec2 mousePos, float scale) const
 	{
-		float radius = m_SettingsStore.GetValue<TSE::Width>() * scale * 0.5f;
+		BrushLikeOverlayPushData pushData{
+			.MousePos = mousePos,
+			.Width = m_SettingsStore.GetValue<TSE::Width>(),
+			.Scale = scale,
+			.Shape = static_cast<int>(m_SettingsStore.GetValue<TSE::Shape>())
+		};
 
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->AddCircle(ImVec2(mousePos.x, mousePos.y), radius + 1, IM_COL32(0, 0, 0, 255), 50, s_OverlayHintThickness);
+		return ToolAction{
+			ToolActionType::GraphicsShaderAction,
+			GraphicsShaderAction{
+				.ShaderEnum = GraphicsShaderEnum::BrushLikeToolOverlay,
+				.PushData = Utils::CopyToBytes(pushData),
+				.PushDataSize = GetToolData().GraphicsPushConstantSize
+			}
+		};
 	}
 
 }

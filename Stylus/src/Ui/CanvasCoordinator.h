@@ -40,7 +40,7 @@ namespace Stylus {
 		void OnMouseMoved(glm::vec2 screenMousePos, glm::vec2 prevScreenMousePos, float ts);
 
 		[[nodiscard]] bool IsCanvasViewportHovered() const;
-		[[nodiscard]] glm::vec2 GetCanvasMousePos() const;
+		[[nodiscard]] glm::vec2 GetCanvasMousePos() const override;
 		[[nodiscard]] float GetCanvasScale() const override;
 	private:
 		void UpdateMousePos();

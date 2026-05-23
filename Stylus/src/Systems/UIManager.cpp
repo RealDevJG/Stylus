@@ -9,8 +9,8 @@
 
 namespace Stylus {
 
-	UIManager::UIManager(IToolManagerState& toolManagerState, IToolRegistryReadonly& toolRegistryReadOnly, ICanvasContext& canvasContext)
-		: m_ToolManagerState(toolManagerState), m_ToolRegistryReadonly(toolRegistryReadOnly), m_CanvasContext(canvasContext) {}
+	UIManager::UIManager(IToolManagerState& toolManagerState, IToolRegistryReadonly& toolRegistryReadOnly, ICanvasContext& canvasContext, const ToolActionExecutor& actionExecutor)
+		: m_ToolManagerState(toolManagerState), m_ToolRegistryReadonly(toolRegistryReadOnly), m_CanvasContext(canvasContext), m_ActionExecutor(actionExecutor) {}
 
 	void UIManager::Render()
 	{
@@ -164,9 +164,10 @@ namespace Stylus {
 		if (const Tool* currentTool = m_ToolManagerState.GetCurrentTool())
 		{
 			float scale = m_CanvasContext.GetCanvasScale();
-			ImVec2 mousePos = ImGui::GetMousePos();
+			glm::vec2 mousePos = m_CanvasContext.GetCanvasMousePos();
 
-			currentTool->DrawOverlayHint(Utils::ToGlmVec2(mousePos), scale);
+			ToolAction action = currentTool->DrawOverlayHint(mousePos, scale);
+			m_ActionExecutor.Execute(action);
 		}
 
 		ImGui::End();

@@ -12,7 +12,7 @@ namespace Stylus {
 		CanvasViewport() = default;
 		~CanvasViewport();
 
-		void Setup(const Walnut::Image& canvasImage);
+		void Setup(const Walnut::Image& canvasImage, const Walnut::Image& overlayImage);
 		void Cleanup();
 
 		void Render();
@@ -32,7 +32,8 @@ namespace Stylus {
 		void CentreCanvas(glm::vec2 viewportAvail);
 	private:
 		VkSampler m_NearestSampler{};
-		VkDescriptorSet m_ForcedDescriptorSet{};
+		VkDescriptorSet m_NearestCanvasDescriptorSet{};
+		VkDescriptorSet m_NearestOverlayDescriptorSet{};
 
 		glm::vec2 m_ViewportOrigin{};
 		glm::vec2 m_CanvasTopLeft{};

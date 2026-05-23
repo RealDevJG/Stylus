@@ -2,6 +2,7 @@
 
 #include "../Systems/IToolManagerState.h"
 #include "../Systems/IToolRegistryReadonly.h"
+#include "../Tools/ToolActionExecutor.h"
 #include "../Tools/ToolEnum.h"
 #include "../UI/ICanvasContext.h"
 
@@ -13,7 +14,7 @@ namespace Stylus {
 	class UIManager
 	{
 	public:
-		UIManager(IToolManagerState& toolManagerState, IToolRegistryReadonly& toolRegistry, ICanvasContext& canvasContext);
+		UIManager(IToolManagerState& toolManagerState, IToolRegistryReadonly& toolRegistry, ICanvasContext& canvasContext, const ToolActionExecutor& actionExecutor);
 		~UIManager() = default;
 
 		UIManager(const UIManager&) = delete;
@@ -36,6 +37,7 @@ namespace Stylus {
 		IToolManagerState& m_ToolManagerState;
 		IToolRegistryReadonly& m_ToolRegistryReadonly;
 		ICanvasContext& m_CanvasContext;
+		const ToolActionExecutor& m_ActionExecutor;
 
 		std::array<char, 5> m_ResizeWidthBuffer{};
 		std::array<char, 5> m_ResizeHeightBuffer{};

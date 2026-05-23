@@ -14,7 +14,7 @@ namespace Stylus {
 		Cleanup();
 	}
 
-	void CanvasViewport::Setup(const Walnut::Image& canvasImage)
+	void CanvasViewport::Setup(const Walnut::Image& canvasImage, const Walnut::Image& overlayImage)
 	{
 		Cleanup();
 
@@ -29,8 +29,11 @@ namespace Stylus {
 		samplerInfo.maxAnisotropy = 1.0f;
 		vkCreateSampler(Walnut::Application::GetDevice(), &samplerInfo, nullptr, &m_NearestSampler);
 
-		m_ForcedDescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_NearestSampler, canvasImage.GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		m_NearestCanvasDescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_NearestSampler, canvasImage.GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		m_NearestOverlayDescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_NearestSampler, overlayImage.GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
 		m_Zoom = 1.0f;
+		SetNeedsCentering();
 	}
 
 	void CanvasViewport::Cleanup()
@@ -57,7 +60,8 @@ namespace Stylus {
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		drawList->AddRectFilled(Utils::ToImVec2(bgTopLeft), Utils::ToImVec2(bgBottomRight), IM_COL32(30, 30, 30, 255));
-		drawList->AddImage(m_ForcedDescriptorSet, Utils::ToImVec2(m_CanvasTopLeft), Utils::ToImVec2(canvasBottomRight));
+		drawList->AddImage(m_NearestCanvasDescriptorSet, Utils::ToImVec2(m_CanvasTopLeft), Utils::ToImVec2(canvasBottomRight));
+		drawList->AddImage(m_NearestOverlayDescriptorSet, Utils::ToImVec2(m_CanvasTopLeft), Utils::ToImVec2(canvasBottomRight));
 
 		m_MousePos = Utils::ToGlmVec2(ImGui::GetMousePos());
 		ImGui::Dummy(Utils::ToImVec2(m_CanvasSize));

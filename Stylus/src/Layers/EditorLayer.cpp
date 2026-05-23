@@ -49,10 +49,10 @@ namespace Stylus {
 		m_HistoryManager = std::make_unique<HistoryManager<std::vector<uint8_t>>>();
 		m_Canvas = std::make_unique<Canvas>();
 		m_CanvasViewport = std::make_unique<CanvasViewport>();
-		m_ToolExecutor = std::make_unique<ToolActionExecutor>(*m_ShaderRegistry, *m_Canvas, *m_ToolSettingsStore);
-		m_CanvasCoordinator = std::make_unique<CanvasCoordinator>(*m_Canvas, *m_CanvasViewport, *m_HistoryManager, *m_ToolExecutor, *m_ShaderRegistry);
-		m_ToolManager = std::make_unique<ToolManager>(*m_ToolExecutor, *m_ToolRegistry);
-		m_UIManager = std::make_unique<UIManager>(*m_ToolManager, *m_ToolRegistry, *m_CanvasCoordinator);
+		m_ActionExecutor = std::make_unique<ToolActionExecutor>(*m_ShaderRegistry, *m_Canvas, *m_ToolSettingsStore);
+		m_CanvasCoordinator = std::make_unique<CanvasCoordinator>(*m_Canvas, *m_CanvasViewport, *m_HistoryManager, *m_ActionExecutor, *m_ShaderRegistry);
+		m_ToolManager = std::make_unique<ToolManager>(*m_ActionExecutor, *m_ToolRegistry);
+		m_UIManager = std::make_unique<UIManager>(*m_ToolManager, *m_ToolRegistry, *m_CanvasCoordinator, *m_ActionExecutor);
 
 		Registrar registrar{};
 		registrar.RegisterToolsAndShaders(*m_ToolRegistry, *m_ShaderRegistry, *m_ToolSettingsStore);

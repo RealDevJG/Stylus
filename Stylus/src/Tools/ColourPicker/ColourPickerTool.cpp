@@ -1,15 +1,16 @@
 #include "ColourPickerTool.h"
 
-#include "../../Utils/CanvasUtils.h"
 #include "../../Systems/ToolSettingsUpdater.h"
+#include "../../Utils/CanvasUtils.h"
+#include "../../Vulkan/PushData.h"
+#include "../ToolSettingsEnum.h"
 
-#include <imgui.h>
 #include <memory>
 
 namespace Stylus {
 
-	ColourPickerTool::ColourPickerTool(const ToolData& toolData, std::function<void()> drawSettingsUIStrategy)
-		: Tool(toolData, drawSettingsUIStrategy) {}
+	ColourPickerTool::ColourPickerTool(const ToolData& toolData, std::function<void()> drawSettingsUIStrategy, ToolSettingsStore& settingsStore)
+		: Tool(toolData, drawSettingsUIStrategy), m_SettingsStore(settingsStore) {}
 
     ToolAction ColourPickerTool::GetLeftClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
     {
@@ -35,10 +36,23 @@ namespace Stylus {
         };
     }
 
-    void ColourPickerTool::DrawOverlayHint(const glm::vec2 mousePos, float scale) const
+    ToolAction ColourPickerTool::DrawOverlayHint(const glm::vec2 mousePos, float scale) const
     {
-        ImDrawList* drawList = ImGui::GetWindowDrawList();
-        drawList->AddCircle(ImVec2(mousePos.x, mousePos.y), 0.5f * scale, IM_COL32(0, 0, 0, 255), 50, s_OverlayHintThickness);
+        BrushLikeOverlayPushData pushData{
+            .MousePos = mousePos,
+            .Width = 1.0f,
+            .Scale = scale,
+            .Shape = static_cast<int>(BrushShapeEnum::Circle)
+        };
+
+        return ToolAction{
+            ToolActionType::GraphicsShaderAction,
+            GraphicsShaderAction{
+                .ShaderEnum = GraphicsShaderEnum::BrushLikeToolOverlay,
+                .PushData = Utils::CopyToBytes(pushData),
+                .PushDataSize = GetToolData().GraphicsPushConstantSize
+            }
+        };
     }
 
 }

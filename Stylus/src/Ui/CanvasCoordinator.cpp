@@ -5,6 +5,7 @@
 
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <Walnut/Application.h>
 
 namespace Stylus {
 
@@ -14,7 +15,11 @@ namespace Stylus {
 	void CanvasCoordinator::CreateCanvas(uint32_t width, uint32_t height)
 	{
 		const Walnut::Image& canvasImage = m_Canvas.CreateCanvasImage(width, height);
+		const Walnut::Image& overlayImage = m_Canvas.CreateOverlayImage(width, height);
+
+		VkDevice device = Walnut::Application::Get().GetDevice();
 		m_ShaderImageUpdater.UpdateStorageImage(canvasImage.GetImageView());
+		m_ShaderImageUpdater.UpdateFramebuffers(device, overlayImage.GetImageView(), overlayImage.GetWidth(), overlayImage.GetHeight());
 
 		FillCanvasPushData pushData{ glm::vec4{ 1.0f } };
 		ToolAction action{
@@ -27,7 +32,7 @@ namespace Stylus {
 		};
 
 		m_CanvasViewport.CanvasResized(width, height);
-		m_CanvasViewport.Setup(canvasImage);
+		m_CanvasViewport.Setup(canvasImage, overlayImage);
 
 		m_ActionExecutor.Execute(action);
 		SaveHistory();

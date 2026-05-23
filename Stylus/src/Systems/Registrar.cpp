@@ -26,9 +26,9 @@ namespace Stylus {
 				Walnut::KeyCode::B,
 				"assets/shaders/brush-like-tool.spv",
 				sizeof(BrushLikePushData),
-				"assets/shaders/brush-like-overlay.vert",
-				"assets/shaders/brush-like-overlay.frag",
-				0
+				"assets/shaders/brush-like-overlay.vert.spv",
+				"assets/shaders/brush-like-overlay.frag.spv",
+				sizeof(BrushLikeOverlayPushData)
 			};
 
 			shaderRegistry.RegisterCompute(ComputeShaderEnum::BrushLikeTool, toolData.ComputeShaderPath, toolData.ComputePushConstantSize);
@@ -50,9 +50,9 @@ namespace Stylus {
 				Walnut::KeyCode::E,
 				"assets/shaders/brush-like-tool.spv",
 				sizeof(BrushLikePushData),
-				"assets/shaders/brush-like-overlay.vert",
-				"assets/shaders/brush-like-overlay.frag",
-				0
+				"assets/shaders/brush-like-overlay.vert.spv",
+				"assets/shaders/brush-like-overlay.frag.spv",
+				sizeof(BrushLikeOverlayPushData)
 			};
 
 			shaderRegistry.RegisterCompute(ComputeShaderEnum::BrushLikeTool, toolData.ComputeShaderPath, toolData.ComputePushConstantSize);
@@ -72,12 +72,20 @@ namespace Stylus {
 				ToolData toolData{
 					"Colour Picker",
 					ToolEnum::ColourPicker,
-					Walnut::KeyCode::K
+					Walnut::KeyCode::K,
+					"",
+					0,
+					"assets/shaders/brush-like-overlay.vert.spv",
+					"assets/shaders/brush-like-overlay.frag.spv",
+					sizeof(BrushLikeOverlayPushData)
 				};
+
+				shaderRegistry.RegisterGraphics(GraphicsShaderEnum::BrushLikeToolOverlay, toolData.VertShaderPath, toolData.FragShaderPath, toolData.GraphicsPushConstantSize);
 
 				const ColourPickerTool colourPickerTool{
 					toolData,
-					TS::CreateToolbarSettingsDrawer<TSE::PrimaryColour, TSE::SecondaryColour>(settingsStore)
+					TS::CreateToolbarSettingsDrawer<TSE::PrimaryColour, TSE::SecondaryColour>(settingsStore),
+					settingsStore
 				};
 
 				toolRegistry.Register<ColourPickerTool>(ToolEnum::ColourPicker, colourPickerTool);

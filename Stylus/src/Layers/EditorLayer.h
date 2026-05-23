@@ -47,7 +47,7 @@ namespace Stylus {
 		std::unique_ptr<ToolManager> m_ToolManager;
 		std::unique_ptr<CanvasViewport> m_CanvasViewport;
 		std::unique_ptr<Canvas> m_Canvas;
-		std::unique_ptr<ToolActionExecutor> m_ToolExecutor;
+		std::unique_ptr<ToolActionExecutor> m_ActionExecutor;
 		std::unique_ptr<CanvasCoordinator> m_CanvasCoordinator;
 		std::unique_ptr<UIManager> m_UIManager;
 
