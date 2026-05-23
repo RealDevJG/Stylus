@@ -1,9 +1,10 @@
 #include "CanvasViewport.h"
 
+#include "../Utils/ConversionUtils.h"
+
 #include <backends/imgui_impl_vulkan.h>
 #include <glm/glm.hpp>
 #include <imgui_internal.h>
-
 #include <Walnut/Application.h>
 
 namespace Stylus {
@@ -13,9 +14,8 @@ namespace Stylus {
 		Cleanup();
 	}
 
-	void CanvasViewport::Setup(Walnut::Image* canvasImage)
+	void CanvasViewport::Setup(const Walnut::Image& canvasImage, const Walnut::Image& overlayImage)
 	{
-		assert(canvasImage && "canvasImage passed to CanvasViewport::Setup was nullptr");
 		Cleanup();
 
 		VkSamplerCreateInfo samplerInfo = {};
@@ -29,8 +29,11 @@ namespace Stylus {
 		samplerInfo.maxAnisotropy = 1.0f;
 		vkCreateSampler(Walnut::Application::GetDevice(), &samplerInfo, nullptr, &m_NearestSampler);
 
-		m_ForcedDescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_NearestSampler, canvasImage->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		m_Scale = 1.0f;
+		m_NearestCanvasDescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_NearestSampler, canvasImage.GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		m_NearestOverlayDescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_NearestSampler, overlayImage.GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+		m_Zoom = 1.0f;
+		SetNeedsCentering();
 	}
 
 	void CanvasViewport::Cleanup()
@@ -38,12 +41,10 @@ namespace Stylus {
 		vkDestroySampler(Walnut::Application::GetDevice(), m_NearestSampler, nullptr);
 	}
 
-	void CanvasViewport::Render(Walnut::Image* canvasImage)
+	void CanvasViewport::Render()
 	{
-		assert(canvasImage && "canvasImage passed to CanvasViewport::Render was nullptr");
-
-		m_ViewportOrigin = ImGui::GetCursorScreenPos();
-		ImVec2 viewportAvail = ImGui::GetContentRegionAvail();
+		m_ViewportOrigin = Utils::ToGlmVec2(ImGui::GetCursorScreenPos());
+		glm::vec2 viewportAvail = Utils::ToGlmVec2(ImGui::GetContentRegionAvail());
 
 		if (m_NeedsCentering)
 		{
@@ -51,32 +52,22 @@ namespace Stylus {
 			m_NeedsCentering = false;
 		}
 
-		ImVec2 bgTopLeft = m_ViewportOrigin;
-		ImVec2 bgBottomRight = {
-			bgTopLeft.x + viewportAvail.x,
-			bgTopLeft.y + viewportAvail.y
-		};
+		glm::vec2 bgTopLeft = m_ViewportOrigin;
+		glm::vec2 bgBottomRight = bgTopLeft + viewportAvail;
 
-		m_CanvasTopLeft = {
-			std::floor(bgTopLeft.x + m_Pan.x),
-			std::floor(bgTopLeft.y + m_Pan.y)
-		};
-
-		ImVec2 canvasBottomRight = {
-			std::floor(m_CanvasTopLeft.x + m_CanvasSize.x * m_Scale),
-			std::floor(m_CanvasTopLeft.y + m_CanvasSize.y * m_Scale)
-		};
+		m_CanvasTopLeft = glm::floor(bgTopLeft + m_Pan);
+		glm::vec2 canvasBottomRight = glm::floor(m_CanvasTopLeft + m_CanvasSize * m_Zoom);
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->AddRectFilled(bgTopLeft, bgBottomRight, IM_COL32(30, 30, 30, 255));
-		drawList->AddImage(m_ForcedDescriptorSet, m_CanvasTopLeft, canvasBottomRight);
+		drawList->AddRectFilled(Utils::ToImVec2(bgTopLeft), Utils::ToImVec2(bgBottomRight), IM_COL32(30, 30, 30, 255));
+		drawList->AddImage(m_NearestCanvasDescriptorSet, Utils::ToImVec2(m_CanvasTopLeft), Utils::ToImVec2(canvasBottomRight));
+		drawList->AddImage(m_NearestOverlayDescriptorSet, Utils::ToImVec2(m_CanvasTopLeft), Utils::ToImVec2(canvasBottomRight));
 
-		m_MousePos = ImGui::GetMousePos();
-
-		ImGui::Dummy(m_CanvasSize);
+		m_MousePos = Utils::ToGlmVec2(ImGui::GetMousePos());
+		ImGui::Dummy(Utils::ToImVec2(m_CanvasSize));
 	}
 
-	void CanvasViewport::ResizeCanvas(uint32_t width, uint32_t height)
+	void CanvasViewport::CanvasResized(uint32_t width, uint32_t height)
 	{
 		m_CanvasSize.x = static_cast<float>(width);
 		m_CanvasSize.y = static_cast<float>(height);
@@ -88,53 +79,53 @@ namespace Stylus {
 		m_NeedsCentering = centre;
 	}
 
-	void CanvasViewport::Pan(float dx, float dy)
+	void CanvasViewport::SetZoom(float zoom)
 	{
-		static float s_Sensitivity = 128.0f;
-
-		m_Pan.x += dx * s_Sensitivity;
-		m_Pan.y += dy * s_Sensitivity;
+		m_Zoom = zoom;
 	}
 
-	void CanvasViewport::Zoom(float dz)
+	void CanvasViewport::Pan(glm::vec2 deltas)
 	{
-		static float s_Sensitivity = 0.08f;
-		float oldZoom = m_Scale;
+		static float s_Sensitivity = 128.0f;
+		m_Pan += deltas * s_Sensitivity;
+	}
 
-		m_Scale += dz * (s_Sensitivity + oldZoom * 0.08f);
-		m_Scale = glm::clamp(m_Scale, 0.1f, 50.0f);
+	void CanvasViewport::Zoom(float deltaZoom)
+	{
+		static float s_Sensitivity = 8.0f;
 
-		float ratio = m_Scale / oldZoom;
-		m_Pan.x = m_MousePos.x - m_ViewportOrigin.x - (m_MousePos.x - m_ViewportOrigin.x - m_Pan.x) * ratio;
-		m_Pan.y = m_MousePos.y - m_ViewportOrigin.y - (m_MousePos.y - m_ViewportOrigin.y - m_Pan.y) * ratio;
+		float oldZoom = m_Zoom;
+		m_Zoom += deltaZoom * (s_Sensitivity + oldZoom * s_Sensitivity * 2.0f);
+		m_Zoom = glm::clamp(m_Zoom, 0.1f, 50.0f);
+
+		float ratio = m_Zoom / oldZoom;
+		m_Pan = m_MousePos - m_ViewportOrigin - (m_MousePos - m_ViewportOrigin - m_Pan) * ratio;
+	}
+
+	void CanvasViewport::CentreCanvas(glm::vec2 viewportAvail)
+	{
+		m_Pan = (viewportAvail - m_CanvasSize * m_Zoom) / 2.0f;
 	}
 
 	bool CanvasViewport::IsCanvasHovered() const
 	{
-		return m_MousePos.x > m_CanvasTopLeft.x && m_MousePos.x < m_CanvasTopLeft.x + m_CanvasSize.x * m_Scale
-			&& m_MousePos.y > m_CanvasTopLeft.y && m_MousePos.y < m_CanvasTopLeft.y + m_CanvasSize.y * m_Scale;
+		return m_MousePos.x > m_CanvasTopLeft.x && m_MousePos.x < m_CanvasTopLeft.x + m_CanvasSize.x * m_Zoom
+			&& m_MousePos.y > m_CanvasTopLeft.y && m_MousePos.y < m_CanvasTopLeft.y + m_CanvasSize.y * m_Zoom;
 	}
 
 	float CanvasViewport::GetCanvasScale() const
 	{
-		return m_Scale;
+		return m_Zoom;
+	}
+
+	glm::vec2 CanvasViewport::GetMousePos() const
+	{
+		return m_MousePos;
 	}
 
 	glm::vec2 CanvasViewport::ToCanvasSpace(glm::vec2 pos) const
 	{
-		glm::vec2 transformed = pos;
-		transformed.x -= m_Pan.x;
-		transformed.y -= m_Pan.y;
-
-		return transformed / m_Scale;
-	}
-
-	inline void CanvasViewport::CentreCanvas(ImVec2 viewportAvail)
-	{
-		m_Pan = {
-			(viewportAvail.x - m_CanvasSize.x * m_Scale) / 2.0f,
-			(viewportAvail.y - m_CanvasSize.y * m_Scale) / 2.0f
-		};
+		return (pos - m_Pan) / m_Zoom;
 	}
 
 }

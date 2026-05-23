@@ -3,9 +3,11 @@ float sdCircle(vec2 pos, float radius)
     return length(pos) - radius;
 }
 
-float sdSquare(vec2 pos, float radius)
+float sdSquare(vec2 pos, float side)
 {
-    return length(min(pos, -radius) + max(pos, radius));
+    float radius = side * 0.5;
+    vec2 d = abs(pos) - radius;
+    return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
 }
 
 float sdTriangle(vec2 pos, float radius)
@@ -23,4 +25,12 @@ float sdTriangle(vec2 pos, float radius)
 
     pos.x -= clamp(pos.x, -2.0 * radius, 0.0);
     return -length(pos) * sign(pos.y);
+}
+
+float GetSignedDistance(int shape, vec2 pos, float radius)
+{
+    if (shape == 0) return sdCircle(pos, radius);
+    if (shape == 1) return sdSquare(pos, radius);
+    if (shape == 2) return sdTriangle(pos, radius);
+    return 1e10;
 }

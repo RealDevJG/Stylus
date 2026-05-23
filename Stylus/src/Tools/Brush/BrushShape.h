@@ -5,7 +5,7 @@
 
 namespace Stylus {
 
-	enum class BrushShapeEnum : uint16_t
+	enum class BrushShapeEnum : uint8_t
 	{
 		Circle = 0,
 		Square,

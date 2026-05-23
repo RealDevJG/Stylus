@@ -1,40 +1,45 @@
 #include "ToolManager.h"
 
-#include "../Tools/Tool.h"
-#include "../Systems/ToolRegistry.h"
-
 namespace Stylus {
 
-    ToolManager::ToolManager(std::shared_ptr<ToolRegistry> toolRegistry)
-    {
-        m_ToolRegistry = toolRegistry;
-        SetTool(ToolEnum::Brush);
-    }
+    ToolManager::ToolManager(ToolActionExecutor& toolExecutor, IToolRegistryReadonly& toolRegistryReadonly)
+        : m_ToolExecutor(toolExecutor), m_ToolRegistryReadonly(toolRegistryReadonly) {}
 
-    bool ToolManager::UseLeftClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
+    bool ToolManager::TryUseClickAction(bool mouseLeftDown, bool mouseRightDown, const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
     {
-        if (m_CurrentTool)
+        if (mouseLeftDown)
         {
-            return m_CurrentTool->UseLeftClick(mousePos, prevMousePos);
+            return UseLeftClickAction(mousePos, prevMousePos);
+        }
+        else if (mouseRightDown)
+        {
+            return UseRightClickAction(mousePos, prevMousePos);
         }
 
         return false;
     }
 
-    bool ToolManager::UseRightClick(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
+    bool ToolManager::UseLeftClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
     {
-        if (m_CurrentTool)
-        {
-            return m_CurrentTool->UseRightClick(mousePos, prevMousePos);
-        }
-
-        return false;
+        ToolAction action = m_CurrentTool->GetLeftClickAction(mousePos, prevMousePos);
+        return m_ToolExecutor.Execute(action);
     }
 
-    const void ToolManager::SetTool(ToolEnum tool)
+    bool ToolManager::UseRightClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const
+    {
+        ToolAction action = m_CurrentTool->GetRightClickAction(mousePos, prevMousePos);
+        return m_ToolExecutor.Execute(action);
+    }
+
+    void ToolManager::SetTool(ToolEnum tool)
     {
         m_CurrentToolEnum = tool;
-        m_CurrentTool = m_ToolRegistry->GetTool(tool);
+        m_CurrentTool = &m_ToolRegistryReadonly.GetTool(tool);
+    }
+
+    const Tool* ToolManager::GetCurrentTool() const
+    {
+        return m_CurrentTool;
     }
 
 }

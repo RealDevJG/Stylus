@@ -1,7 +1,8 @@
 #include "FileReader.h"
 
-#include <iostream>
+#include <expected>
 #include <cassert>
+#include <iostream>
 
 namespace Stylus {
 
@@ -11,21 +12,24 @@ namespace Stylus {
 		m_File = std::ifstream(path, std::ios::binary | std::ios::ate);
 	}
 
-	std::vector<uint32_t> FileReader::Read() noexcept
+	std::expected<std::vector<uint32_t>, FileError> FileReader::ReadSpirv() noexcept
 	{
 		if (!m_File.good())
 		{
-			std::cout << "File " << m_Path << " is no good, wrong path maybe?\n";
-			return std::vector<uint32_t>();
+			std::cerr << "File " << m_Path << " is no good, wrong path maybe?\n";
+			return std::unexpected{ FileError::FileNotGood };
 		}
 
 		const size_t fileSize = static_cast<size_t>(m_File.tellg());
-		assert(fileSize % 4 == 0 && "Shader file is invalid SPIR-V. The file is not 4-byte aligned");
+
+		if (fileSize % 4 != 0)
+		{
+			std::cerr << "File " << m_Path << " is not 4-byte aligned; it is invalid SPIR-V\n";
+			return std::unexpected{ FileError::FileInvalidSPIRV };
+		}
 
 		// Division to translate bytes from std::ios::binary into uint32_t
-		std::vector<uint32_t> buffer;
-		buffer.resize(fileSize / 4);
-
+		std::vector<uint32_t> buffer(fileSize / 4);
 		m_File.seekg(0);
 		m_File.read(reinterpret_cast<char*>(buffer.data()), fileSize);
 
