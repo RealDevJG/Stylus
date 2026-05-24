@@ -19,6 +19,7 @@ namespace Stylus {
 		bool OnKeyPressed(Walnut::KeyCode keyCode) const;
 	private:
 		float ChangeBrushWidthBy(float moveBy) const;
+		void SwapPrimarySecondaryColours() const;
 	private:
 		ToolSettingsStore& m_ToolSettingsStore;
 	};
