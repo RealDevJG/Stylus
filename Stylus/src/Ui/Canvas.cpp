@@ -1,10 +1,19 @@
 #include "Canvas.h"
 
+#include <Walnut/Application.h>
+
 namespace Stylus {
 
 	void Canvas::SetData(const void* data)
 	{
 		m_CanvasImage->SetData(data);
+	}
+
+	const Walnut::Image& Canvas::SetCanvasImage(std::string_view imagePath)
+	{
+		m_CanvasImage = std::make_unique<Walnut::Image>(imagePath);
+		CreateOverlayImage(m_CanvasImage->GetWidth(), m_CanvasImage->GetHeight());
+		return *m_CanvasImage;
 	}
 
 	const Walnut::Image& Canvas::GetCanvasImage() const

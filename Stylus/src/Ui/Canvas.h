@@ -1,9 +1,10 @@
 #pragma once
 
 #include "ICanvasView.h"
-
 #include <Walnut/Image.h>
+
 #include <memory>
+#include <string_view>
 
 namespace Stylus {
 
@@ -19,6 +20,8 @@ namespace Stylus {
 		Canvas& operator=(Canvas&&) noexcept = default;
 
 		void SetData(const void* data);
+		[[nodiscard]] const Walnut::Image& SetCanvasImage(std::string_view imagePath);
+
 		[[nodiscard]] const Walnut::Image& GetCanvasImage() const override;
 		[[nodiscard]] const Walnut::Image& GetOverlayImage() const override;
 	private:

@@ -1,6 +1,9 @@
 #include "EditorLayer.h"
 
+#include "../Serialisation/ImageFileOperations.h"
 #include "../Systems/Registrar.h"
+#include "../Utils/FileUtils.h"
+
 #include <Walnut/Application.h>
 
 namespace Stylus {
@@ -53,6 +56,7 @@ namespace Stylus {
 		m_CanvasCoordinator = std::make_unique<CanvasCoordinator>(*m_Canvas, *m_CanvasViewport, *m_HistoryManager, *m_ActionExecutor, *m_ShaderRegistry);
 		m_ToolManager = std::make_unique<ToolManager>(*m_ActionExecutor, *m_ToolRegistry);
 		m_UIManager = std::make_unique<UIManager>(*m_ToolManager, *m_ToolRegistry, *m_CanvasCoordinator, *m_ActionExecutor);
+		m_ImageFileOperations = std::make_unique<ImageFileOperations>(*m_Canvas, *m_CanvasCoordinator);
 
 		Registrar registrar{};
 		registrar.RegisterToolsAndShaders(*m_ToolRegistry, *m_ShaderRegistry, *m_ToolSettingsStore);
@@ -71,6 +75,16 @@ namespace Stylus {
 			{
 				if (ImGui::BeginMenu("File"))
 				{
+					if (ImGui::MenuItem("Open"))
+					{
+						m_ImageFileOperations->Open();
+					}
+
+					if (ImGui::MenuItem("Save as..."))
+					{
+						m_ImageFileOperations->SaveAs();
+					}
+
 					if (ImGui::MenuItem("Exit"))
 					{
 						app.Close();

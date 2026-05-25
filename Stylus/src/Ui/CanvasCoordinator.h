@@ -28,6 +28,7 @@ namespace Stylus {
 		CanvasCoordinator&& operator=(CanvasCoordinator&&) = delete;
 
 		void CreateCanvas(uint32_t width, uint32_t height) override;
+		void SetupCanvases(const Walnut::Image& canvasImage, const Walnut::Image& overlayImage);
 		void Render();
 
 		void ClearHistory();

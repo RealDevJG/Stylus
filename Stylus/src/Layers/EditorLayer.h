@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Serialisation/ImageFileOperations.h"
 #include "../Systems/ShaderRegistry.h"
 #include "../Systems/HistoryManager.h"
 #include "../Systems/ToolManager.h"
@@ -50,6 +51,7 @@ namespace Stylus {
 		std::unique_ptr<ToolActionExecutor> m_ActionExecutor;
 		std::unique_ptr<CanvasCoordinator> m_CanvasCoordinator;
 		std::unique_ptr<UIManager> m_UIManager;
+		std::unique_ptr<ImageFileOperations> m_ImageFileOperations;
 
 		glm::vec2 m_CanvasMousePos{};
 		glm::vec2 m_ScreenMousePos{};
