@@ -1,9 +1,9 @@
 #pragma once
 
+#include "ToolActions.h"
 #include "ToolData.h"
 
-#include <glm/glm.hpp>
-#include <imgui.h>
+#include <glm/vec2.hpp>
 #include <functional>
 
 namespace Stylus {
@@ -11,22 +11,19 @@ namespace Stylus {
 	class Tool
 	{
 	public:
-		inline static ImU32 s_OverlayHintColour = IM_COL32(0, 0, 0, 255);
-		inline static float s_OverlayHintThickness = 1.0f;
+		Tool(const ToolData& toolData, std::function<void()> drawSettingsUIStrategy)
+			: m_ToolData(toolData), m_DrawSettingsUIStrategy(drawSettingsUIStrategy) {}
 
-		Tool(std::function<void()> drawUiStrategy, ToolData toolData)
-			: m_DrawUiStrategy(drawUiStrategy), m_ToolData(toolData) {}
+		void DrawSettingsUI() const { m_DrawSettingsUIStrategy(); }
 
-		void DrawOptionsUI() const { m_DrawUiStrategy(); }
+		[[nodiscard]] virtual ToolAction GetLeftClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const = 0;
+		[[nodiscard]] virtual ToolAction GetRightClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const = 0;
+		[[nodiscard]] virtual ToolAction DrawOverlayHint(const glm::vec2 mousePos, float scale) const = 0;
 
-		virtual bool UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const = 0;
-		virtual bool UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const = 0;
-		virtual void DrawOverlayHint(ImVec2 mousePos, float scale) const = 0;
-
-		[[nodiscard]] const ToolData GetToolData() const { return m_ToolData; }
+		[[nodiscard]] const ToolData& GetToolData() const { return m_ToolData; }
 	private:
-		std::function<void()> m_DrawUiStrategy;
 		ToolData m_ToolData;
+		std::function<void()> m_DrawSettingsUIStrategy;
 	};
 
 }

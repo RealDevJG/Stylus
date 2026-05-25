@@ -1,37 +1,51 @@
 #pragma once
 
-#include "../Tools/EffectEnum.h"
-#include "../Tools/ToolData.h"
-#include "../Tools/ToolEnum.h"
 #include "../Vulkan/ComputeShader.h"
+#include "../Vulkan/GraphicsShader.h"
+#include "../Vulkan/ShaderEnums.h"
 
-#include <Walnut/Image.h>
+#include "IShaderImageUpdater.h"
+#include "IShaderRegistryReadonly.h"
+
+#include <memory>
 #include <unordered_map>
 
 namespace Stylus {
 
-	class ShaderRegistry
+	class ShaderRegistry final : public IShaderImageUpdater, public IShaderRegistryReadonly
 	{
 	public:
-		ShaderRegistry() = default;
-		~ShaderRegistry() = default;
+		ShaderRegistry();
+		~ShaderRegistry();
 
 		ShaderRegistry(const ShaderRegistry&) = delete;
 		ShaderRegistry& operator=(const ShaderRegistry&) = delete;
 		ShaderRegistry(ShaderRegistry&&) = delete;
 		ShaderRegistry& operator=(ShaderRegistry&&) = delete;
 
-		void Init();
-		void SetCanvasImage(std::shared_ptr<Walnut::Image> canvasImage);
+		bool RegisterCompute(const ComputeShaderEnum shaderEnum, const std::filesystem::path& computePath, uint32_t pushSize);
+		bool RegisterGraphics(const GraphicsShaderEnum shaderEnum, const std::filesystem::path& vertPath, const std::filesystem::path& fragPath, uint32_t pushSize);
 
-		std::shared_ptr<ComputeShader> RegisterAndGet(ToolEnum tool, const ToolData& toolData);
-		[[nodiscard]] std::shared_ptr<ComputeShader> Get(ToolEnum tool) const;
-		[[nodiscard]] std::shared_ptr<ComputeShader> Get(EffectEnum effect) const;
+		void UpdateStorageImage(VkImageView imageView) override;
+		void UpdateFramebuffers(VkDevice device, VkImageView imageView, uint32_t width, uint32_t height) override;
 
+		[[nodiscard]] ComputeShader* GetCompute(const ComputeShaderEnum shaderEnum) const override;
+		[[nodiscard]] GraphicsShader* GetGraphics(const GraphicsShaderEnum shaderEnum) const override;
+		[[nodiscard]] VkDescriptorSet GetDescriptorSet() const override;
+		[[nodiscard]] VkFramebuffer GetFramebuffer() const override;
+		[[nodiscard]] VkRenderPass GetRenderPass() const override;
+
+		void Setup();
 		void Cleanup();
 	private:
-		std::unordered_map<ToolEnum, std::shared_ptr<ComputeShader>> m_ToolShaders{};
-		std::unordered_map<EffectEnum, std::shared_ptr<ComputeShader>> m_EffectShaders{};
+		std::unordered_map<ComputeShaderEnum, std::unique_ptr<ComputeShader>> m_ComputeShaders{};
+		std::unordered_map<GraphicsShaderEnum, std::unique_ptr<GraphicsShader>> m_GraphicsShaders{};
+
+		VkDescriptorSetLayout m_DescriptorSetLayout{ VK_NULL_HANDLE };
+		VkDescriptorPool m_DescriptorPool{ VK_NULL_HANDLE };
+		VkDescriptorSet m_DescriptorSet{ VK_NULL_HANDLE };
+		VkFramebuffer m_Framebuffer{ VK_NULL_HANDLE };
+		VkRenderPass m_RenderPass{ VK_NULL_HANDLE };
 	};
 
 }

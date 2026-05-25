@@ -1,39 +1,34 @@
-#include "UILayer.h"
+#include "UIManager.h"
 
 #include "../Tools/Tool.h"
 #include "../Tools/ToolData.h"
-#include "../Tools/ToolEnum.h"
-
-#include "../Layers/CanvasLayer.h"
-#include "../Systems/ToolManager.h"
-#include "../Systems/ToolRegistry.h"
+#include "../Utils/ConversionUtils.h"
 
 #include <imgui.h>
-#include <imgui_internal.h>
 #include <Walnut/UI/UI.h>
-
-#include <charconv>
-#include <fstream>
 
 namespace Stylus {
 
-	void UiLayer::OnUIRender()
+	UIManager::UIManager(IToolManagerState& toolManagerState, IToolRegistryReadonly& toolRegistryReadOnly, ICanvasContext& canvasContext, const ToolActionExecutor& actionExecutor)
+		: m_ToolManagerState(toolManagerState), m_ToolRegistryReadonly(toolRegistryReadOnly), m_CanvasContext(canvasContext), m_ActionExecutor(actionExecutor) {}
+
+	void UIManager::Render()
 	{
 		static bool s_FirstFrame = true;
-
-		if (m_ResizeCanvasModalOpen)
-		{
-			DrawResizeCanvasModal();
-		}
 
 		if (s_FirstFrame)
 		{
 			s_FirstFrame = false;
 
-			if (ImGui::FindWindowSettings(ImHashStr("Canvas")) == nullptr)
+			if (ImGui::FindWindowSettings(ImHashStr("Canvas Viewport")) == nullptr)
 			{
 				m_ShouldSetDefaultLayout = true;
 			}
+		}
+
+		if (m_ResizeCanvasModalOpen)
+		{
+			DrawResizeCanvasModal();
 		}
 
 		if (m_ShouldSetDefaultLayout)
@@ -45,36 +40,25 @@ namespace Stylus {
 		ImGuiWindowClass windowClass;
 		windowClass.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
 
+		// Tool bar
 		ImGui::SetNextWindowClass(&windowClass);
-		ImGui::Begin("Tool Bar");
+		DrawToolBar();
 
-		const auto& tools = m_ToolRegistry->GetTools();
-		for (const auto& [toolEnum, tool] : tools)
-		{
-			const ToolData& toolData = tool->GetToolData();
-			m_UiDrawer.DrawToolButton(toolEnum, toolData.Name);
-		}
-
-		ImGui::End();
-
+		// Tool settings bar
 		ImGui::SetNextWindowClass(&windowClass);
-		ImGui::Begin("Tool Options");
+		DrawToolSettings();
 
-		std::weak_ptr<const Tool> currentTool = m_ToolManager->GetTool();
-		if (auto tool = currentTool.lock())
-		{
-			m_UiDrawer.DrawToolOptions([&tool]() { tool->DrawOptionsUI(); });
-		}
-
-		ImGui::End();
+		// Tool overlay e.g. circle outline of where brush is going to draw
+		ImGui::SetNextWindowClass(&windowClass);
+		DrawToolOverlayHint();
 	}
 
-	void UiLayer::SetDefaultLayout()
+	void UIManager::SetDefaultLayout()
 	{
 		m_ShouldSetDefaultLayout = true;
 	}
 
-	void UiLayer::OpenResizeCanvasModal()
+	void UIManager::OpenResizeCanvasModal()
 	{
 		m_ResizeWidthBuffer = { "854" };
 		m_ResizeHeightBuffer = { "480" };
@@ -82,7 +66,7 @@ namespace Stylus {
 		m_ShouldCentreResizeModal = true;
 	}
 
-	void UiLayer::DefaultLayout()
+	void UIManager::DefaultLayout() const
     {
         ImGuiID dockspaceId = ImGui::GetID("MyDockspace");
 
@@ -96,12 +80,12 @@ namespace Stylus {
 
 		ImGui::DockBuilderDockWindow("Tool Options", dockOptionsId);
 		ImGui::DockBuilderDockWindow("Tool Bar", dockToolsId);
-		ImGui::DockBuilderDockWindow("Canvas", dockCanvasId);
+		ImGui::DockBuilderDockWindow("Canvas Viewport", dockCanvasId);
 
 		ImGui::DockBuilderFinish(dockspaceId);
 	}
 
-	void UiLayer::DrawResizeCanvasModal()
+	void UIManager::DrawResizeCanvasModal()
 	{
 		if (!m_ResizeCanvasModalOpen)
 		{
@@ -134,8 +118,7 @@ namespace Stylus {
 				std::from_chars(m_ResizeWidthBuffer.data(), m_ResizeWidthBuffer.data() + m_ResizeWidthBuffer.size(), width);
 				std::from_chars(m_ResizeHeightBuffer.data(), m_ResizeHeightBuffer.data() + m_ResizeHeightBuffer.size(), height);
 
-				CanvasLayer* canvasLayer = Walnut::Application::Get().GetLayer<CanvasLayer>();
-				canvasLayer->ResizeCanvas(width, height);
+				m_CanvasContext.CreateCanvas(width, height);
 			}
 
 			if (Walnut::UI::ButtonCentered("Cancel"))
@@ -146,6 +129,58 @@ namespace Stylus {
 		}
 
 		ImGui::EndPopup();
+	}
+
+	void UIManager::DrawToolBar() const
+	{
+		ImGui::Begin("Tool Bar");
+
+		const auto& tools = m_ToolRegistryReadonly.GetTools();
+		for (const auto& [toolEnum, tool] : tools)
+		{
+			const ToolData& toolData = tool->GetToolData();
+			DrawToolButton(toolEnum, toolData.Name);
+		}
+
+		ImGui::End();
+	}
+
+	void UIManager::DrawToolSettings() const
+	{
+		ImGui::Begin("Tool Options");
+
+		if (const Tool* currentTool = m_ToolManagerState.GetCurrentTool())
+		{
+			currentTool->DrawSettingsUI();
+		}
+
+		ImGui::End();
+	}
+
+	void UIManager::DrawToolOverlayHint() const
+	{
+		ImGui::Begin("Canvas Viewport", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+		if (const Tool* currentTool = m_ToolManagerState.GetCurrentTool())
+		{
+			float scale = m_CanvasContext.GetCanvasScale();
+			glm::vec2 mousePos = m_CanvasContext.GetCanvasMousePos();
+
+			ToolAction action = currentTool->DrawOverlayHint(mousePos, scale);
+			m_ActionExecutor.Execute(action);
+		}
+
+		ImGui::End();
+	}
+
+	void UIManager::DrawToolButton(ToolEnum toolEnum, std::string_view toolName) const
+	{
+		const float width = ImGui::GetContentRegionAvail().x;
+
+		if (ImGui::Button(toolName.data(), ImVec2(width, 35)))
+		{
+			m_ToolManagerState.SetTool(toolEnum);
+		}
 	}
 
 }

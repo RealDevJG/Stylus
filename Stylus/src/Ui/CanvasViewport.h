@@ -1,11 +1,8 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <imgui.h>
+#include <glm/vec2.hpp>
 #include <Walnut/Image.h>
-
 #include <cstdint>
-#include <memory>
 
 namespace Stylus {
 
@@ -15,34 +12,37 @@ namespace Stylus {
 		CanvasViewport() = default;
 		~CanvasViewport();
 
-		void Setup(std::shared_ptr<Walnut::Image> canvasImage);
+		void Setup(const Walnut::Image& canvasImage, const Walnut::Image& overlayImage);
 		void Cleanup();
 
-		void Render(std::shared_ptr<Walnut::Image> canvasImage);
-		void ResizeCanvas(uint32_t width, uint32_t height);
-		void SetNeedsCentering(bool centre = true);
+		void Render();
+		void CanvasResized(uint32_t width, uint32_t height);
 
-		void Pan(float dx, float dy);
-		void Zoom(float dz);
+		void SetNeedsCentering(bool centre = true);
+		void SetZoom(float zoom);
+
+		void Pan(glm::vec2 deltas);
+		void Zoom(float deltaZoom);
 
 		[[nodiscard]] bool IsCanvasHovered() const;
 		[[nodiscard]] float GetCanvasScale() const;
+		[[nodiscard]] glm::vec2 GetMousePos() const;
 		[[nodiscard]] glm::vec2 ToCanvasSpace(glm::vec2 pos) const;
 	private:
-		inline void CentreCanvas(ImVec2 viewportAvail);
+		void CentreCanvas(glm::vec2 viewportAvail);
 	private:
-		ImVec2 m_ViewportOrigin{};
-		ImVec2 m_CanvasTopLeft{};
-		ImVec2 m_CanvasSize{};
-		ImVec2 m_MousePos{};
-
-		ImVec2 m_Pan{};
-		float m_Scale = 1.0f;
-
-		bool m_NeedsCentering = true;
-
 		VkSampler m_NearestSampler{};
-		VkDescriptorSet m_ForcedDescriptorSet{};
+		VkDescriptorSet m_NearestCanvasDescriptorSet{};
+		VkDescriptorSet m_NearestOverlayDescriptorSet{};
+
+		glm::vec2 m_ViewportOrigin{};
+		glm::vec2 m_CanvasTopLeft{};
+		glm::vec2 m_CanvasSize{};
+		glm::vec2 m_MousePos{};
+
+		glm::vec2 m_Pan{};
+		float m_Zoom = 1.0f;
+		bool m_NeedsCentering = true;
 	};
 
 }

@@ -1,7 +1,7 @@
 project "Stylus"
    kind "ConsoleApp"
    language "C++"
-   cppdialect "C++20"
+   cppdialect "C++23"
    targetdir "bin/%{cfg.buildcfg}"
    staticruntime "off"
 
@@ -18,6 +18,7 @@ project "Stylus"
    {
       "../vendor/imgui",
       "../vendor/glfw/include",
+      "../vendor/stb_image",
 
       "../vendor/walnut/Walnut/Platform/GUI",
       "../vendor/walnut/Walnut/Source",

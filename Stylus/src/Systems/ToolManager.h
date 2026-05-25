@@ -1,19 +1,22 @@
 #pragma once
 
+#include "../Systems/ToolRegistry.h"
+#include "../Tools/Tool.h"
 #include "../Tools/ToolEnum.h"
+#include "../Tools/ToolActionExecutor.h"
 
-#include <glm/glm.hpp>
-#include <memory>
+#include "IToolManagerState.h"
+#include "IToolManagerInteractions.h"
+#include "IToolRegistryReadonly.h"
+
+#include <glm/vec2.hpp>
 
 namespace Stylus {
 
-	class Tool;
-	class ToolRegistry;
-
-	class ToolManager
+	class ToolManager final : public IToolManagerState, public IToolManagerInteractions
 	{
 	public:
-		ToolManager() = default;
+		ToolManager(ToolActionExecutor& toolExecutor, IToolRegistryReadonly& toolRegistryReadonly);
 		~ToolManager() = default;
 
 		ToolManager(const ToolManager&) = delete;
@@ -21,18 +24,19 @@ namespace Stylus {
 		ToolManager(ToolManager&&) = delete;
 		ToolManager& operator=(ToolManager&&) = delete;
 
-		void Init(std::shared_ptr<ToolRegistry> toolRegistry);
+		// Returns true if the canvas was updated and should be saved to the history manager
+		[[nodiscard]] bool TryUseClickAction(bool mouseLeftDown, bool mouseRightDown, const glm::vec2 mousePos, const glm::vec2 prevMousePos) const override;
+		[[nodiscard]] bool UseLeftClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const override;
+		[[nodiscard]] bool UseRightClickAction(const glm::vec2 mousePos, const glm::vec2 prevMousePos) const override;
 
-		[[nodiscard]] bool UseLeftClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const;
-		[[nodiscard]] bool UseRightClick(glm::vec2 mousePos, glm::vec2 prevMousePos) const;
-
-		const void SetTool(ToolEnum tool);
-		std::weak_ptr<const Tool> GetTool() const { return m_CurrentTool; }
+		void SetTool(ToolEnum tool) override;
+		[[nodiscard]] const Tool* GetCurrentTool() const override;
 	private:
-		std::weak_ptr<const Tool> m_CurrentTool;
-		ToolEnum m_CurrentToolEnum = ToolEnum::Brush;
+		ToolActionExecutor& m_ToolExecutor;
+		IToolRegistryReadonly& m_ToolRegistryReadonly;
 
-		std::shared_ptr<ToolRegistry> m_ToolRegistry;
+		const Tool* m_CurrentTool = nullptr;
+		ToolEnum m_CurrentToolEnum = ToolEnum::None;
 	};
 
 }

@@ -8,9 +8,8 @@ layout(push_constant) uniform PushData {
 } PushConstants;
 
 void main() {
-    // Get the integer coords of the current pixel
     ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
-
     vec4 colour = PushConstants.Colour;
+
     imageStore(canvasImage, pixelCoords, colour);
 }

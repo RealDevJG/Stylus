@@ -2,16 +2,15 @@
 
 #include "../Tools/Tool.h"
 #include "../Tools/ToolEnum.h"
+#include "IToolRegistryReadonly.h"
 
+#include <Walnut/Input/KeyCodes.h>
 #include <unordered_map>
 #include <memory>
 
 namespace Stylus {
 
-	class ToolSettingsRegistry;
-	class ShaderRegistry;
-
-	class ToolRegistry
+	class ToolRegistry final : public IToolRegistryReadonly
 	{
 	public:
 		ToolRegistry() = default;
@@ -22,14 +21,20 @@ namespace Stylus {
 		ToolRegistry(ToolRegistry&&) = delete;
 		ToolRegistry& operator=(ToolRegistry&&) = delete;
 
-		void Init(std::shared_ptr<ToolSettingsRegistry> toolSettingsRegistry, std::shared_ptr<ShaderRegistry> shaderRegistry);
+		template<typename T> requires std::derived_from<T, Tool>
+		void Register(ToolEnum toolEnum, const T& tool)
+		{
+			const ToolData& toolData = tool.GetToolData();
 
-		[[nodiscard]] std::shared_ptr<const Tool> GetTool(ToolEnum tool) const;
-		[[nodiscard]] ToolEnum GetToolEnum(Walnut::KeyCode shortcut) const;
+			m_KeyShortcuts.try_emplace(toolData.KeyShortcut, toolData.Type);
+			m_Tools.try_emplace(toolData.Type, std::make_unique<T>(tool));
+		}
 
-		[[nodiscard]] const std::unordered_map<ToolEnum, std::shared_ptr<const Tool>>& GetTools() const;
+		[[nodiscard]] const Tool& GetTool(ToolEnum toolEnum) const override;
+		[[nodiscard]] ToolEnum GetToolEnum(Walnut::KeyCode shortcut) const override;
+		[[nodiscard]] const std::unordered_map<ToolEnum, std::unique_ptr<const Tool>>& GetTools() const override;
 	private:
-		std::unordered_map<ToolEnum, std::shared_ptr<const Tool>> m_Tools;
+		std::unordered_map<ToolEnum, std::unique_ptr<const Tool>> m_Tools;
 		std::unordered_map<Walnut::KeyCode, ToolEnum> m_KeyShortcuts;
 	};
 
