@@ -15,6 +15,11 @@ namespace Stylus {
             ChangeBrushWidthBy(moveBy);
             return true;
         }
+        else if (keyCode == Walnut::KeyCode::X)
+        {
+            SwapPrimarySecondaryColours();
+            return true;
+        }
 
         return false;
     }
@@ -24,6 +29,14 @@ namespace Stylus {
         auto& value = m_ToolSettingsStore.GetValue<TSE::Width>();
         value = glm::floor(glm::clamp(value + moveBy, 1.0f, 256.0f));
         return value;
+    }
+
+    void ToolSettingsController::SwapPrimarySecondaryColours() const
+    {
+        auto& primaryColour = m_ToolSettingsStore.GetValue<TSE::PrimaryColour>();
+        auto& secondaryColour = m_ToolSettingsStore.GetValue<TSE::SecondaryColour>();
+
+        std::swap(primaryColour, secondaryColour);
     }
 
 }

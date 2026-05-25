@@ -5,6 +5,11 @@
 
 namespace Stylus {
 
+    ShaderRegistry::ShaderRegistry()
+    {
+        Setup();
+    }
+
     ShaderRegistry::~ShaderRegistry()
     {
         Cleanup();
@@ -14,26 +19,6 @@ namespace Stylus {
     {
         VkDevice device = Walnut::Application::GetDevice();
 
-        if (m_DescriptorSetLayout == VK_NULL_HANDLE)
-        {
-            VkDescriptorSetLayoutBinding imageBinding{};
-            imageBinding.binding = 0;
-            imageBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            imageBinding.descriptorCount = 1;
-            imageBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-
-            VkDescriptorSetLayoutCreateInfo layoutInfo{};
-            layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-            layoutInfo.bindingCount = 1;
-            layoutInfo.pBindings = &imageBinding;
-
-            if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_DescriptorSetLayout) != VK_SUCCESS)
-            {
-                std::cerr << "Failed to create descriptor set layout in ShaderRegistry::RegisterCompute\n";
-                return false;
-            }
-        }
-
         ShaderLayoutConfig layoutConfig;
         layoutConfig.DescriptorSetLayouts = { m_DescriptorSetLayout };
         layoutConfig.PushConstants = { { VK_SHADER_STAGE_COMPUTE_BIT, 0, pushSize } };
@@ -42,49 +27,15 @@ namespace Stylus {
         if (computeShader->Init(device, computePath, layoutConfig))
         {
             m_ComputeShaders.try_emplace(shaderEnum, std::move(computeShader));
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     bool ShaderRegistry::RegisterGraphics(const GraphicsShaderEnum shaderEnum, const std::filesystem::path& vertPath, const std::filesystem::path& fragPath, uint32_t pushSize)
     {
         VkDevice device = Walnut::Application::GetDevice();
-
-        if (m_RenderPass == VK_NULL_HANDLE)
-        {
-            VkAttachmentDescription colourAttachment{};
-            colourAttachment.format = VK_FORMAT_B8G8R8A8_UNORM;
-            colourAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            colourAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            colourAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-            colourAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            colourAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            colourAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            colourAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-            VkAttachmentReference colourAttachmentRef{};
-            colourAttachmentRef.attachment = 0;
-            colourAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-            VkSubpassDescription subpass{};
-            subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-            subpass.colorAttachmentCount = 1;
-            subpass.pColorAttachments = &colourAttachmentRef;
-
-            VkRenderPassCreateInfo renderPassInfo{};
-            renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-            renderPassInfo.attachmentCount = 1;
-            renderPassInfo.pAttachments = &colourAttachment;
-            renderPassInfo.subpassCount = 1;
-            renderPassInfo.pSubpasses = &subpass;
-
-            if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS)
-            {
-                std::cerr << "Failed to create render pass in ShaderRegistry::RegisterGraphics\n";
-                return false;
-            }
-        }
 
         ShaderLayoutConfig layoutConfig{};
         layoutConfig.PushConstants = { { VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, pushSize } };
@@ -94,45 +45,15 @@ namespace Stylus {
         if (graphicsShader->Init(device, m_RenderPass, vertPath, fragPath, layoutConfig))
         {
             m_GraphicsShaders.try_emplace(shaderEnum, std::move(graphicsShader));
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     void ShaderRegistry::UpdateStorageImage(VkImageView imageView)
     {
         VkDevice device = Walnut::Application::GetDevice();
-
-        if (m_DescriptorPool == VK_NULL_HANDLE)
-        {
-            VkDescriptorPoolSize poolSize{};
-            poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            poolSize.descriptorCount = 1;
-
-            VkDescriptorPoolCreateInfo poolInfo{};
-            poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            poolInfo.poolSizeCount = 1;
-            poolInfo.pPoolSizes = &poolSize;
-            poolInfo.maxSets = 1;
-
-            if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
-            {
-                std::cerr << "Failed to create descriptor pool in ShaderRegistry::UpdateStorageImage\n";
-                return;
-            }
-
-            VkDescriptorSetAllocateInfo allocateInfo{};
-            allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            allocateInfo.descriptorPool = m_DescriptorPool;
-            allocateInfo.descriptorSetCount = 1;
-            allocateInfo.pSetLayouts = &m_DescriptorSetLayout;
-
-            if (vkAllocateDescriptorSets(device, &allocateInfo, &m_DescriptorSet))
-            {
-                std::cerr << "Failed to create descriptor set in ShaderRegistry::UpdateStorageImage\n";
-                return;
-            }
-        }
 
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageView = imageView;
@@ -205,10 +126,100 @@ namespace Stylus {
         return m_RenderPass;
     }
 
+    void ShaderRegistry::Setup()
+    {
+        VkDevice device = Walnut::Application::GetDevice();
+
+        if (m_DescriptorSetLayout == VK_NULL_HANDLE)
+        {
+            VkDescriptorSetLayoutBinding imageBinding{};
+            imageBinding.binding = 0;
+            imageBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+            imageBinding.descriptorCount = 1;
+            imageBinding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+            VkDescriptorSetLayoutCreateInfo layoutInfo{};
+            layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+            layoutInfo.bindingCount = 1;
+            layoutInfo.pBindings = &imageBinding;
+
+            if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &m_DescriptorSetLayout) != VK_SUCCESS)
+            {
+                std::cerr << "Failed to create descriptor set layout in ShaderRegistry::RegisterCompute\n";
+                return;
+            }
+        }
+
+        if (m_RenderPass == VK_NULL_HANDLE)
+        {
+            VkAttachmentDescription colourAttachment{};
+            colourAttachment.format = VK_FORMAT_B8G8R8A8_UNORM;
+            colourAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            colourAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            colourAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            colourAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            colourAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            colourAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            colourAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+            VkAttachmentReference colourAttachmentRef{};
+            colourAttachmentRef.attachment = 0;
+            colourAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+            VkSubpassDescription subpass{};
+            subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+            subpass.colorAttachmentCount = 1;
+            subpass.pColorAttachments = &colourAttachmentRef;
+
+            VkRenderPassCreateInfo renderPassInfo{};
+            renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+            renderPassInfo.attachmentCount = 1;
+            renderPassInfo.pAttachments = &colourAttachment;
+            renderPassInfo.subpassCount = 1;
+            renderPassInfo.pSubpasses = &subpass;
+
+            if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS)
+            {
+                std::cerr << "Failed to create render pass in ShaderRegistry::RegisterGraphics\n";
+                return;
+            }
+        }
+
+        if (m_DescriptorPool == VK_NULL_HANDLE)
+        {
+            VkDescriptorPoolSize poolSize{};
+            poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+            poolSize.descriptorCount = 1;
+
+            VkDescriptorPoolCreateInfo poolInfo{};
+            poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+            poolInfo.poolSizeCount = 1;
+            poolInfo.pPoolSizes = &poolSize;
+            poolInfo.maxSets = 1;
+
+            if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
+            {
+                std::cerr << "Failed to create descriptor pool in ShaderRegistry::UpdateStorageImage\n";
+                return;
+            }
+
+            VkDescriptorSetAllocateInfo allocateInfo{};
+            allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+            allocateInfo.descriptorPool = m_DescriptorPool;
+            allocateInfo.descriptorSetCount = 1;
+            allocateInfo.pSetLayouts = &m_DescriptorSetLayout;
+
+            if (vkAllocateDescriptorSets(device, &allocateInfo, &m_DescriptorSet))
+            {
+                std::cerr << "Failed to create descriptor set in ShaderRegistry::UpdateStorageImage\n";
+                return;
+            }
+        }
+    }
+
     void ShaderRegistry::Cleanup()
     {
         VkDevice device = Walnut::Application::GetDevice();
-        m_ComputeShaders.clear();
 
         if (device != VK_NULL_HANDLE)
         {

@@ -17,10 +17,6 @@ namespace Stylus {
 		const Walnut::Image& canvasImage = m_Canvas.CreateCanvasImage(width, height);
 		const Walnut::Image& overlayImage = m_Canvas.CreateOverlayImage(width, height);
 
-		VkDevice device = Walnut::Application::Get().GetDevice();
-		m_ShaderImageUpdater.UpdateStorageImage(canvasImage.GetImageView());
-		m_ShaderImageUpdater.UpdateFramebuffers(device, overlayImage.GetImageView(), overlayImage.GetWidth(), overlayImage.GetHeight());
-
 		FillCanvasPushData pushData{ glm::vec4{ 1.0f } };
 		ToolAction action{
 			ToolActionType::ComputeShaderAction,
@@ -31,11 +27,22 @@ namespace Stylus {
 			}
 		};
 
-		m_CanvasViewport.CanvasResized(width, height);
-		m_CanvasViewport.Setup(canvasImage, overlayImage);
-
+		SetupCanvases(canvasImage, overlayImage);
 		m_ActionExecutor.Execute(action);
+
+		ClearHistory();
 		SaveHistory();
+	}
+
+	void CanvasCoordinator::SetupCanvases(const Walnut::Image& canvasImage, const Walnut::Image& overlayImage)
+	{
+		VkDevice device = Walnut::Application::Get().GetDevice();
+
+		m_ShaderImageUpdater.UpdateStorageImage(canvasImage.GetImageView());
+		m_ShaderImageUpdater.UpdateFramebuffers(device, overlayImage.GetImageView(), overlayImage.GetWidth(), overlayImage.GetHeight());
+
+		m_CanvasViewport.CanvasResized(canvasImage.GetWidth(), canvasImage.GetHeight());
+		m_CanvasViewport.Setup(canvasImage, overlayImage);
 	}
 
 	void CanvasCoordinator::Render()

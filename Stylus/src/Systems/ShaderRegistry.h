@@ -15,7 +15,7 @@ namespace Stylus {
 	class ShaderRegistry final : public IShaderImageUpdater, public IShaderRegistryReadonly
 	{
 	public:
-		ShaderRegistry() = default;
+		ShaderRegistry();
 		~ShaderRegistry();
 
 		ShaderRegistry(const ShaderRegistry&) = delete;
@@ -34,7 +34,8 @@ namespace Stylus {
 		[[nodiscard]] VkDescriptorSet GetDescriptorSet() const override;
 		[[nodiscard]] VkFramebuffer GetFramebuffer() const override;
 		[[nodiscard]] VkRenderPass GetRenderPass() const override;
-	private:
+
+		void Setup();
 		void Cleanup();
 	private:
 		std::unordered_map<ComputeShaderEnum, std::unique_ptr<ComputeShader>> m_ComputeShaders{};
