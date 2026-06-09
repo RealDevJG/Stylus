@@ -35,7 +35,7 @@ namespace Stylus {
 		float m_ToolWidth = 3.0f;
 		BrushShapeEnum m_ToolShape = BrushShapeEnum::Circle;
 
-		bool m_Antialiased = true;
+		bool m_Antialiased = false;
 	};
 
 }

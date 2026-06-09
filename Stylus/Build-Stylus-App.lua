@@ -35,6 +35,12 @@ project "Stylus"
    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
+   postbuildcommands
+   {
+      '{COPYDIR} "%{wks.location}Stylus/assets/images" "%{cfg.targetdir}/assets/images"',
+      'robocopy "%{wks.location}stylus/assets/shaders" "%{cfg.targetdir}/assets/shaders" *.spv /NJH /NJS /NDL /NC /NS & if %errorlevel% leq 1 exit 0'
+   }
+
    filter "system:windows"
       systemversion "latest"
       defines { "WL_PLATFORM_WINDOWS" }
